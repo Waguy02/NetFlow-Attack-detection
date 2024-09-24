@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import umap
 import matplotlib.pyplot as plt
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+# from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from network_ad.config import LOGS_DIR
 from network_ad.unsupervised.autoencoder_datamodule import AutoencoderDataModule
@@ -124,11 +124,12 @@ class Autoencoder(pl.LightningModule):
         # Optimizer
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
 
+        total_steps = self.trainer.max_steps
+        print("Max training steps: ", total_steps)
         # Scheduler: ReduceLROnPlateau
         scheduler = {
-            'scheduler': ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, min_lr=1e-6, verbose=True),
-            'monitor': 'val_loss',  # Scheduler will check this metric
-            'interval': 'epoch',
+            'scheduler': torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_steps, eta_min=1e-6),
+            'interval': 'step',  # Adjust the learning rate after every step
             'frequency': 1
         }
 
@@ -137,21 +138,25 @@ class Autoencoder(pl.LightningModule):
 
 if __name__ == "__main__":
     # Initialize the DataModule
-    BATCH_SIZE = 1024
+    BATCH_SIZE = 128
     VAL_RATIO = 0.1
 
     HIDDEN_DIM_1 = 256
     HIDDEM_DIM_2 = 64
     LATENT_DIM = 16
-    INITIAL_LR = 1e-3
+    LR = 1e-5
+    NUM_WORKERS = 2
 
-    NUM_WORKERS =  8
+    N_EPOCHS=3
+
     data_module = AutoencoderDataModule(batch_size=BATCH_SIZE,
                                         val_ratio=VAL_RATIO,
                                         num_workers = NUM_WORKERS,
                                         )
 
     data_module.setup()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Get the input dimension (number of features)
     sample_batch = next(iter(data_module.train_dataloader()))
@@ -167,7 +172,6 @@ if __name__ == "__main__":
                         hidden_dim1=HIDDEN_DIM_1,
                         hidden_dim2=HIDDEM_DIM_2,
                         latent_dim=LATENT_DIM,
-
                         )
 
     # Define the TensorBoard logger
@@ -191,11 +195,17 @@ if __name__ == "__main__":
 
     # Define the Trainer, enabling TensorBoard logging and specifying the maximum epochs
     trainer = pl.Trainer(
-        max_epochs=20,
-        accelerator="cuda" if torch.cuda.is_available() else "cpu",
+        # accelerator="cpu",
+        accelerator="auto",
+        devices='auto',
+        strategy="auto",
+        check_val_every_n_epoch=1,
         logger=logger,
         callbacks=[checkpoint_callback, lr_monitor, early_stopping],
-
+        profiler="simple",
+        max_steps= 100,
+        # max_epochs=N_EPOCHS,
+        max_epochs=1
     )
 
     # Train the model
