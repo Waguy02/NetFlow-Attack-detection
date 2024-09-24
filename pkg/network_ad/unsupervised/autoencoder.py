@@ -99,13 +99,13 @@ class Autoencoder(pl.LightningModule):
         embedding = reducer.fit_transform(encoded)
 
         # Plot UMAP result
-        plt.figure(figsize=(8, 6))
+        plt.figure(figsize=(10, 10))
         plt.scatter(embedding[:, 0], embedding[:, 1], s=5, cmap='Spectral')
         plt.title('UMAP projection of latent_dim')
 
         # Log the plot in TensorBoard
         self.logger.experiment.add_figure('UMAP of latent_dim', plt.gcf(), global_step=self.current_epoch)
-        plt.close()
+
 
     def test_step(self, batch, batch_idx):
         x = batch
@@ -134,20 +134,18 @@ class Autoencoder(pl.LightningModule):
         # Optimizer
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
 
-
         print("Max training steps: ", self.max_training_steps)
-        # Scheduler: ReduceLROnPlateau
-        scheduler = {
-            'scheduler': torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
                                                 T_max=self.max_training_steps,
-
                                                 eta_min=1e-6),
-            'interval': 'step',  # Adjust the learning rate after every step
-            'frequency': 1
+                "monitor": "train_loss",
+                "interval": "step", # step means "batch" here, default: epoch   # New!
+                "frequency": 1, # default
+            },
         }
-
-        return [optimizer], [scheduler]
-
 
 if __name__ == "__main__":
     # Initialize the DataModule
@@ -156,10 +154,10 @@ if __name__ == "__main__":
 
     HIDDEN_DIM_1 = 256
     HIDDEM_DIM_2 = 64
-    LATENT_DIM = 16
-    LR = 1e-5
+    LATENT_DIM = 32
+    LR = 1e-3
     NUM_WORKERS = 0
-    N_EPOCHS=5
+    N_EPOCHS=2
 
     data_module = AutoencoderDataModule(batch_size=BATCH_SIZE,
                                         val_ratio=VAL_RATIO,
@@ -182,6 +180,7 @@ if __name__ == "__main__":
                         hidden_dim2=HIDDEM_DIM_2,
                         latent_dim=LATENT_DIM,
                         max_training_steps= len(data_module.train_dataloader()) * N_EPOCHS,
+                        learning_rate=LR
                         )
 
     # Define the TensorBoard logger
@@ -198,7 +197,7 @@ if __name__ == "__main__":
     )
 
     # Define the LearningRateMonitor callback
-    lr_monitor = LearningRateMonitor(logging_interval='epoch')
+    lr_monitor = LearningRateMonitor(logging_interval='step')
 
     # Define the Trainer, enabling TensorBoard logging and specifying the maximum epochs
     trainer = pl.Trainer(
@@ -212,7 +211,7 @@ if __name__ == "__main__":
     )
 
     # Train the model
-    trainer.fit(model, data_module, ckpt_path="last")
+    trainer.fit(model, data_module, ckpt_path="last",)
 
     # Test the model
     best_checkpoint = checkpoint_callback.best_model_path
