@@ -7,11 +7,18 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
 # Setup (Instructions)
 
 ----
-- Download data file from the following kaggle repository : 
- https://www.kaggle.com/datasets/ashtcoder/network-data-schema-in-the-netflow-v9-format/data?select=train_net.csv
-- Extract train_net.csv and test_net.csv in the data directory of the local repository copy.
+1. **Download data**
+- Download data file from the following link 
+ https://rdm.uq.edu.au/files/8c6e2a00-ef9c-11ed-827d-e762de186848
+- Extract `NF-UNSW-NB15-v2.csv` file to `data/raw` directory
 
+2. **Install Pkg**
+- Recommended : Use conda or virtualenv to create a new environment (optional)
+- From the root directory of the project, run the following command to install the network_ad package
+```bash
+  pip install -e .
+```
 
-## Data 
+## Preprocessing 
 
 

@@ -3,6 +3,11 @@ from setuptools import find_packages, setup
 requirements = """
 pandas
 numpy
+jupyter
+seaborn
+jupyterlab
+networkx
+pytorch_lightning
 """
 
 setup(
@@ -11,7 +16,7 @@ setup(
     description="Detect anomalies in IP network using Machine Learning",
     packages=find_packages(),
     install_requires=requirements,
-    python_requires='==3.10.12',
+    python_requires='>=3.10.5',
     include_package_data=True,
     scripts=[],
     zip_safe=False,
