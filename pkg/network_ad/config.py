@@ -12,9 +12,7 @@ NUMERICAL_STATS_PATH = PREPROCESSED_DATA_PATH / "numerical_stats.csv"
 CATEGORICAL_STATS_PATH = PREPROCESSED_DATA_PATH / "categorical_stats.json"
 
 
-
-
-
+#AUTOENCODER CONFIG BELOW
 BASE_FEATURES = [
     # Chosen according to Top 20 correlated features
     "Label",  # O =benign or 1 = malicious
@@ -47,13 +45,12 @@ BASE_FEATURES = [
 
 TEST_RATIO = 0.2
 
-
 # AutoEncoder features
 BINARY_LABEL_COLUMN = "Label"
 MULTICLASS_LABEL_COLUMN = "Attack"
 
 NUMERICAL_FEATURES = [  # List of numerical features to compute stats for
-   "MIN_TTL",
+    "MIN_TTL",
     "MAX_TTL",
     "MIN_IP_PKT_LEN",
     "SHORTEST_FLOW_PKT",
@@ -83,3 +80,7 @@ CATEGORICAL_FEATURES = [  # List of categorical features to compute stats for
     "CLIENT_TCP_FLAGS",
     "FTP_COMMAND_RET_CODE",
 ]
+
+SEED = 42
+
+AUTOENCODER_INPUT_DIMS = 704 #Not calculated but obtained from autoencoder datamodule.py (main)

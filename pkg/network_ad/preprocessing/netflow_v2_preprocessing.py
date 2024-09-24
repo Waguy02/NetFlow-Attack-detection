@@ -63,6 +63,17 @@ def clip_ports (data: pd.DataFrame = None) -> pd.DataFrame:
     return data
 
 
+def convert_categorical_features_to_string(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert the categorical features to string type
+    :param data: The input dataframe
+    :return: The dataframe with categorical features converted to string type
+    """
+    for col in CATEGORICAL_FEATURES:
+        data[col] = data[col].astype(str)
+    return data
+
+
 
 
 def compute_and_save_statistics(data: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]:
@@ -135,14 +146,17 @@ if __name__ == "__main__":
     print("3. Clipping Ports...")
     df = clip_ports(df)
 
-    print("4. Computing and Saving Statistics...")
+    print("4. Converting Categorical Features to String...")
+    df = convert_categorical_features_to_string(df)
+
+    print("5. Computing and Saving Statistics...")
     numerical_stats, categorical_stats = compute_and_save_statistics(df)
 
-    print(f"5. Train test splitting with test ratio of {TEST_RATIO}...")
+    print(f"6. Train test splitting with test ratio of {TEST_RATIO}...")
     train_data, test_data = train_test_split(df, TEST_RATIO)
 
 
-    print("6. Saving Data...")
+    print("7. Saving Data...")
     save_data(train_data, test_data , numerical_stats, categorical_stats)
 
-    print("7. Done!")
+    print("Done!")
