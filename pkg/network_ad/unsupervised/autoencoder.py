@@ -140,6 +140,7 @@ class Autoencoder(pl.LightningModule):
         scheduler = {
             'scheduler': torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
                                                 T_max=self.max_training_steps,
+
                                                 eta_min=1e-6),
             'interval': 'step',  # Adjust the learning rate after every step
             'frequency': 1
