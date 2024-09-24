@@ -137,7 +137,7 @@ class Autoencoder(pl.LightningModule):
 
 if __name__ == "__main__":
     # Initialize the DataModule
-    BATCH_SIZE = 256
+    BATCH_SIZE = 1024
     VAL_RATIO = 0.1
 
     HIDDEN_DIM_1 = 256
@@ -145,9 +145,13 @@ if __name__ == "__main__":
     LATENT_DIM = 16
     INITIAL_LR = 1e-3
 
+    NUM_WORKERS =  8
     data_module = AutoencoderDataModule(batch_size=BATCH_SIZE,
-                                        val_ratio=VAL_RATIO)
+                                        val_ratio=VAL_RATIO,
+                                        num_workers = NUM_WORKERS,
+                                        )
 
+    data_module.setup()
 
     # Get the input dimension (number of features)
     sample_batch = next(iter(data_module.train_dataloader()))
@@ -191,6 +195,7 @@ if __name__ == "__main__":
         accelerator="cuda" if torch.cuda.is_available() else "cpu",
         logger=logger,
         callbacks=[checkpoint_callback, lr_monitor, early_stopping],
+
     )
 
     # Train the model

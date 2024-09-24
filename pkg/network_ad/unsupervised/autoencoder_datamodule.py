@@ -47,7 +47,7 @@ class AutoencoderDataset(Dataset):
 
 
 class AutoencoderDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size=32, val_ratio=0.1):
+    def __init__(self, batch_size=32, val_ratio=0.1, num_workers=0):
         super().__init__()
         self.train_path = TRAIN_DATA_PATH
         self.test_path = TEST_DATA_PATH
@@ -58,6 +58,7 @@ class AutoencoderDataModule(pl.LightningDataModule):
         self.means = None
         self.stds = None
         self.categorical_encoders = {}
+        self.num_workers = num_workers
 
     def load_data(self, mode):
         if mode == 'train':
@@ -70,7 +71,6 @@ class AutoencoderDataModule(pl.LightningDataModule):
     def setup(self, stage=None):
         """Load data and set up the encoders and statistics."""
         # Load statistics
-        print("Loading statistics for numerical and categorical features...")
         numerical_stats = pd.read_csv(self.numerical_stats_path, index_col=0)
         self.means = numerical_stats['mean'].values
         self.stds = numerical_stats['std'].values
@@ -85,7 +85,6 @@ class AutoencoderDataModule(pl.LightningDataModule):
             self.categorical_encoders[feature].fit(np.array(categorical_stats[feature]).reshape(-1, 1))
 
         # Train and validation datasets
-        print("Loading training data...")
         df_train = self.load_data('train')
         train_df, val_df = train_test_split(df_train, test_ratio=self.val_ratio)
 
@@ -94,18 +93,17 @@ class AutoencoderDataModule(pl.LightningDataModule):
         self.val_data = AutoencoderDataset(val_df, self.means, self.stds, self.categorical_encoders)
 
         # Test dataset
-        print("Loading test data...")
         df_test = self.load_data('test')
         self.test_data = AutoencoderDataset(df_test, self.means, self.stds, self.categorical_encoders)
 
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True , num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data, batch_size=self.batch_size)
+        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=self.num_workers)
 
     def test_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=self.num_workers)
 
 
 # Main function to test the DataModule
