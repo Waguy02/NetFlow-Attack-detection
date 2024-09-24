@@ -8,6 +8,7 @@ seaborn
 jupyterlab
 networkx
 pytorch_lightning
+umap-learn
 """
 
 setup(

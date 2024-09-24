@@ -84,3 +84,6 @@ CATEGORICAL_FEATURES = [  # List of categorical features to compute stats for
 SEED = 42
 
 AUTOENCODER_INPUT_DIMS = 704 #Not calculated but obtained from autoencoder datamodule.py (main)
+
+
+LOGS_DIR  = HERE / ".." / ".." / "logs"
