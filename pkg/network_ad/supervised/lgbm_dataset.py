@@ -1,13 +1,14 @@
 import lightgbm as lgb
 import pandas as pd
-import numpy as np
-import json
-from sklearn.model_selection import KFold
 
-from network_ad.config import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, TRAIN_DATA_PATH, TEST_DATA_PATH
+from network_ad.config import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, TRAIN_DATA_PATH, TEST_DATA_PATH, \
+    BINARY_LABEL_COLUMN, MULTICLASS_LABEL_COLUMN
+
 
 class LightGBMDataset:
-    def __init__(self, train_path=TRAIN_DATA_PATH, test_path=TEST_DATA_PATH):
+    def __init__(self, train_path=TRAIN_DATA_PATH,
+                 test_path=TEST_DATA_PATH,
+                 multiclass=False):
         self.train_path = train_path
         self.test_path = test_path
         self.categorical_features = CATEGORICAL_FEATURES
@@ -16,6 +17,9 @@ class LightGBMDataset:
         self.y_train = None
         self.X_test = None
         self.y_test = None
+        self.multiclass = multiclass
+        self.target_variable =  MULTICLASS_LABEL_COLUMN if multiclass else BINARY_LABEL_COLUMN
+
 
     def load_data(self, mode):
         """Load training or test data."""
@@ -39,9 +43,9 @@ class LightGBMDataset:
 
         # Separate the features and target (assuming the target is in a column called 'target')
         self.X_train = train_df[NUMERICAL_FEATURES + CATEGORICAL_FEATURES]
-        self.y_train = train_df['target']
+        self.y_train = train_df[self.target_variable]
         self.X_test = test_df[NUMERICAL_FEATURES + CATEGORICAL_FEATURES]
-        self.y_test = test_df['target']
+        self.y_test = test_df[self.target_variable]
 
     def get_lgb_dataset(self, X, y):
         """Create a LightGBM dataset from given features and labels."""

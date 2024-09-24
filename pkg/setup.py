@@ -9,6 +9,7 @@ jupyterlab
 networkx
 pytorch_lightning
 umap-learn
+lightgbm
 """
 
 setup(

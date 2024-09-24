@@ -11,10 +11,20 @@ from network_ad.unsupervised.autoencoder_datamodule import AutoencoderDataModule
 
 
 class Autoencoder(pl.LightningModule):
-    def __init__(self, input_dim, hidden_dim1=256, hidden_dim2=128, latent_dim=32, learning_rate=1e-3):
+    def __init__(self, input_dim, hidden_dim1=256, hidden_dim2=128, latent_dim=32, learning_rate=1e-3,
+                 max_training_steps = None
+                 ):
+        """
+        :param input_dim: The input dimension (number of features) of the autoencoder
+        :param hidden_dim1: The number of neurons in the first hidden layer
+        :param hidden_dim2: The number of neurons in the second hidden layer
+        :param latent_dim: The latent dimension (number of neurons in the bottleneck layer)
+        :param learning_rate: The learning rate for the optimizer
+        :param max_training_steps: The maximum number of training steps(used for the scheduler)
+        """
         super(Autoencoder, self).__init__()
         self.learning_rate = learning_rate
-
+        self.max_training_steps = max_training_steps
         # Encoder: 3 layers, input -> 256 -> 128 -> latent_dim (32)
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, hidden_dim1),
@@ -124,11 +134,13 @@ class Autoencoder(pl.LightningModule):
         # Optimizer
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
 
-        total_steps = self.trainer.max_steps
-        print("Max training steps: ", total_steps)
+
+        print("Max training steps: ", self.max_training_steps)
         # Scheduler: ReduceLROnPlateau
         scheduler = {
-            'scheduler': torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_steps, eta_min=1e-6),
+            'scheduler': torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
+                                                T_max=self.max_training_steps,
+                                                eta_min=1e-6),
             'interval': 'step',  # Adjust the learning rate after every step
             'frequency': 1
         }
@@ -145,19 +157,15 @@ if __name__ == "__main__":
     HIDDEM_DIM_2 = 64
     LATENT_DIM = 16
     LR = 1e-5
-    NUM_WORKERS = 2
-
-    N_EPOCHS=3
+    NUM_WORKERS = 0
+    N_EPOCHS=5
 
     data_module = AutoencoderDataModule(batch_size=BATCH_SIZE,
                                         val_ratio=VAL_RATIO,
                                         num_workers = NUM_WORKERS,
                                         )
-
     data_module.setup()
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     # Get the input dimension (number of features)
     sample_batch = next(iter(data_module.train_dataloader()))
     input_dim = sample_batch.shape[1]
@@ -172,6 +180,7 @@ if __name__ == "__main__":
                         hidden_dim1=HIDDEN_DIM_1,
                         hidden_dim2=HIDDEM_DIM_2,
                         latent_dim=LATENT_DIM,
+                        max_training_steps= len(data_module.train_dataloader()) * N_EPOCHS,
                         )
 
     # Define the TensorBoard logger
@@ -180,7 +189,7 @@ if __name__ == "__main__":
     # Define the ModelCheckpoint callback (Save the best model based on validation loss)
     checkpoint_callback = ModelCheckpoint(
         monitor='val_loss',
-        dirpath=LOGS_DIR,
+        dirpath=LOGS_DIR/'autoencoder',
         filename='autoencoder-{epoch:02d}-{val_loss:.2f}',
         save_top_k=1,
         save_last=True,
@@ -190,26 +199,20 @@ if __name__ == "__main__":
     # Define the LearningRateMonitor callback
     lr_monitor = LearningRateMonitor(logging_interval='epoch')
 
-    # Early stopping callback (Stop training early if the validation loss does not improve)
-    early_stopping = pl.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode='min')
-
     # Define the Trainer, enabling TensorBoard logging and specifying the maximum epochs
     trainer = pl.Trainer(
-        # accelerator="cpu",
         accelerator="auto",
         devices='auto',
         strategy="auto",
         check_val_every_n_epoch=1,
         logger=logger,
-        callbacks=[checkpoint_callback, lr_monitor, early_stopping],
-        profiler="simple",
-        max_steps= 100,
-        # max_epochs=N_EPOCHS,
-        max_epochs=1
+        callbacks=[checkpoint_callback, lr_monitor],
+        max_epochs=N_EPOCHS,
     )
 
     # Train the model
     trainer.fit(model, data_module, ckpt_path="last")
 
     # Test the model
-    trainer.test(model, data_module, ckpt_path="best")
+    best_checkpoint = checkpoint_callback.best_model_path
+    trainer.test(model, data_module, ckpt_path=best_checkpoint)
