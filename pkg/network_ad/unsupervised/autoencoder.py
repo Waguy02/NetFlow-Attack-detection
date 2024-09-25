@@ -118,7 +118,7 @@ class Autoencoder(pl.LightningModule):
 
             #pca
             # Plot UMAP result
-            plt.figure(figsize=(4, 4))
+            plt.figure(figsize=(10, 10))
             plt.scatter(embedding[:, 0], embedding[:, 1], c=colors, s=5)
             # Create custom colorbar with two colors: blue (Normal) and red (Anomaly)
 
