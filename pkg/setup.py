@@ -5,6 +5,8 @@ pandas
 numpy
 jupyter
 seaborn
+h5pickle
+
 jupyterlab
 networkx
 pytorch_lightning

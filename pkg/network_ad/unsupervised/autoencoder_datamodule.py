@@ -2,8 +2,10 @@ import json
 import multiprocessing
 import os
 import time
+from typing import List
 
-import h5py
+# import h5py
+import h5pickle as h5py
 import joblib
 import numpy as np
 import pandas as pd
@@ -35,6 +37,10 @@ class AutoencoderDataset(Dataset):
         features = self.h5file[self.mode][idx]
         return torch.tensor(features)
 
+
+
+
+
     def close(self):
         self.h5file.close()  # Ensure to close the HDF5 file when done
 
@@ -55,6 +61,8 @@ class AutoencoderDataModule(pl.LightningDataModule):
         self.stds = None
         self.categorical_encoders = {}
         self.num_workers = num_workers
+        self.binary_labels_by_mode = {}
+        self.multiclass_labels_by_mode = {}
 
     def load_data(self, mode):
         if mode == 'train':
@@ -68,6 +76,64 @@ class AutoencoderDataModule(pl.LightningDataModule):
         for feature in CATEGORICAL_FEATURES:
             df[feature] = df[feature].astype(str)
         return df
+
+    def get_binary_labels(self, mode)->List:
+        """
+        Only for visualization purposes.
+        The training of the autoencoder is unsupervised.
+
+        :param mode:
+        :return:
+        """
+        if mode in self.binary_labels_by_mode:
+            return self.binary_labels_by_mode[mode]
+
+        if mode == 'train':
+            df = pd.read_csv(self.train_path, usecols=['Label'])
+            nb_train_samples = len(df) * (1-self.val_ratio)
+            df = df[:int(nb_train_samples)]
+            self.binary_labels_by_mode[mode] = df['Label'].tolist()
+            return df['Label'].tolist()
+        elif mode == 'val':
+            df = pd.read_csv(self.train_path, usecols=['Label'])
+            nb_train_samples = len(df) * (1-self.val_ratio)
+            df = df[int(nb_train_samples):]
+            self.binary_labels_by_mode[mode] = df['Label'].tolist()
+            return df['Label'].tolist()
+        elif mode == 'test':
+            df = pd.read_csv(self.test_path, usecols=['Label'])
+            self.binary_labels_by_mode[mode] = df['Label'].tolist()
+            return df['Label'].tolist()
+
+    def get_multiclass_labels(self, mode)->List:
+        """
+        Only for visualization purposes.
+        :param mode:
+        :return:
+        """
+        if mode in self.multiclass_labels_by_mode:
+            return self.multiclass_labels_by_mode[mode]
+
+        if mode == 'train':
+            df = pd.read_csv(self.train_path, usecols=['Attack'])
+            nb_train_samples = len(df) * (1-self.val_ratio)
+            df = df[:int(nb_train_samples)]
+            self.multiclass_labels_by_mode[mode] = df['Attack'].tolist()
+            return df['Attack'].tolist()
+
+        elif mode == 'val':
+            df = pd.read_csv(self.train_path, usecols=['Attack'])
+            nb_train_samples = len(df) * (1-self.val_ratio)
+            df = df[int(nb_train_samples):]
+            self.multiclass_labels_by_mode[mode] = df['Attack'].tolist()
+            return df['Attack'].tolist()
+
+        elif mode == 'test':
+            df = pd.read_csv(self.test_path, usecols=['Attack'])
+            self.multiclass_labels_by_mode[mode] = df['Attack'].tolist()
+            return df['Attack'].tolist()
+
+
 
     def setup(self, stage=None):
         """Load data and set up the encoders and statistics."""
@@ -101,21 +167,21 @@ class AutoencoderDataModule(pl.LightningDataModule):
             shutil.copy(temporary_h5_path, preprocessed_h5_path)
 
         # Create dataset objects for training, validation, and test
-        self.train_data = AutoencoderDataset(preprocessed_h5_path, self.means, self.stds, mode='train')
-        self.val_data = AutoencoderDataset(preprocessed_h5_path, self.means, self.stds, mode='val')
-        self.test_data = AutoencoderDataset(preprocessed_h5_path, self.means, self.stds, mode='test')
+        self.train_data = AutoencoderDataset(str(preprocessed_h5_path), self.means, self.stds, mode='train')
+        self.val_data = AutoencoderDataset(str(preprocessed_h5_path), self.means, self.stds, mode='val')
+        self.test_data = AutoencoderDataset(str(preprocessed_h5_path), self.means, self.stds, mode='test')
 
     def save_processed_dataset(self, mode):
         """Process and save dataset to HDF5."""
 
         if mode == 'train':
             df = self.load_data('train')
-            nb_train_samples = len(df) * 0.8
+            nb_train_samples = len(df) * (1-self.val_ratio)
             dataframe = df[:int(nb_train_samples)]
 
         elif mode == 'val':
             df = self.load_data('train')
-            nb_train_samples = len(df) * 0.8
+            nb_train_samples = len(df) *  (1-self.val_ratio)
             dataframe = df[int(nb_train_samples):]
         elif mode == 'test':
             df = self.load_data('test')
@@ -193,10 +259,11 @@ class AutoencoderDataModule(pl.LightningDataModule):
         return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=self.num_workers)
 
     def teardown(self, stage):
-        # Close HDF5 files after training
-        self.train_data.close()
-        self.val_data.close()
-        self.test_data.close()
+        if stage == 'test':
+            self.test_data.close()
+            self.train_data.close()
+            self.val_data.close()
+
 
 
 # Main function to test the DataModule

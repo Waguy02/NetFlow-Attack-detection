@@ -48,6 +48,8 @@ TEST_RATIO = 0.2
 # AutoEncoder features
 BINARY_LABEL_COLUMN = "Label"
 MULTICLASS_LABEL_COLUMN = "Attack"
+MULTIClASS_CLASS_NAMES= ['Benign', 'Fuzzers', 'Generic', 'Reconnaissance', 'Exploits,' 'Analysis', 'Backdoor','DoS', 'Shellcode','Worms']
+BINARY_CLASS_NAMES = ['Benign', 'Malicious']
 
 NUMERICAL_FEATURES = [  # List of numerical features to compute stats for
     "MIN_TTL",
@@ -82,6 +84,8 @@ CATEGORICAL_FEATURES = [  # List of categorical features to compute stats for
 ]
 
 SEED = 42
+
+MAX_PLOT_POINTS = 20000
 
 AUTOENCODER_INPUT_DIMS = 704 #Not calculated but obtained from autoencoder datamodule.py (main)
 
