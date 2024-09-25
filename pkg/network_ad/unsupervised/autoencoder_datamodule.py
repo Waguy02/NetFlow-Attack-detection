@@ -250,13 +250,16 @@ class AutoencoderDataModule(pl.LightningDataModule):
             f.close()
 
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers,
+                          persistent_workers=True)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=self.num_workers,
+                          persistent_workers=True)
 
     def test_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=self.num_workers,
+                          persistent_workers=True)
 
     def teardown(self, stage):
         if stage == 'test':

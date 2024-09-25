@@ -1,3 +1,4 @@
+import matplotlib.cm
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
@@ -8,7 +9,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.colors as mcolors
-from network_ad.config import LOGS_DIR, MAX_PLOT_POINTS, BINARY_CLASS_NAMES
+from network_ad.config import LOGS_DIR, MAX_PLOT_POINTS, BINARY_CLASS_NAMES, MULTIClASS_CLASS_NAMES
 from network_ad.unsupervised.autoencoder_datamodule import AutoencoderDataModule
 
 
@@ -96,42 +97,40 @@ class Autoencoder(pl.LightningModule):
         # Reset the validation step outputs
         self.validation_step_outputs = np.zeros((0, self.latent_dim))
 
-    def plot_latent_space(self, encoded, mode='val', MULTICLASS_CLASS_NAMES=None):
+    def plot_latent_space(self, encoded, mode='val'):
 
         reducer = PCA(n_components=2)
         embedding = reducer.fit_transform(encoded)
 
         for label_type in ['binary', 'multiclass']:
-
+            plt.figure(figsize=(5, 5))
             # Get the labels to color the plot
-            if labels == 'binary':
+            if label_type == 'binary':
                 labels = self.trainer.datamodule.get_binary_labels(mode)[:encoded.shape[0]]  # Assuming a method get_labels exists in your datamodule
-                colors = ["blue" if label == 0 else "red" for label in labels]
-                cmap = mcolors.ListedColormap(colors)
-                labels_names = BINARY_CLASS_NAMES
-
+                class_names = BINARY_CLASS_NAMES
             else:
                 labels = self.trainer.datamodule.get_multiclass_labels(mode)[:encoded.shape[0]]
-                colors = labels
-                cmap = plt.cm.get_cmap('tab10', len(np.unique(labels)))
-                labels_names = MULTICLASS_CLASS_NAMES
+                class_names = MULTIClASS_CLASS_NAMES
 
-            #pca
-            # Plot UMAP result
-            plt.figure(figsize=(10, 10))
-            plt.scatter(embedding[:, 0], embedding[:, 1], c=colors, s=5)
-            # Create custom colorbar with two colors: blue (Normal) and red (Anomaly)
+            found_labels = np.unique(labels)
+            labels_names = list(filter(lambda x: x in found_labels, class_names))
+            labels_to_idx = {label: i for i, label in enumerate(labels_names)}
+            cmap = plt.cm.get_cmap('tab10', len(np.unique(labels)))
+            colors = [cmap(labels_to_idx[label]) for label in labels]
 
-            bounds = [-0.5, 0.5, 1.5]
+            bounds = np.arange(len(np.unique(labels)) + 1) - 0.5
             norm = mcolors.BoundaryNorm(bounds, cmap.N)
+            cbar = plt.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap), ticks=np.arange(len(np.unique(labels))))
 
-            cbar = plt.colorbar(mcolors.ScalarMappable(norm=norm, cmap=cmap), ticks=[0, 1])
+            # Create custom colorbar with two colors: blue (Normal) and red (Anomaly)
+            plt.scatter(embedding[:, 0], embedding[:, 1], c=colors, s=5)
             cbar.ax.set_yticklabels(labels_names)
 
             explained_variance = reducer.explained_variance_ratio_.tolist()
             explained_variance = [round(e, 3) for e in explained_variance]
             title = f'PCA projection of latent_dim - {label_type} - {mode}'
             plt.title(title + '\n' + f'Explained variance: {explained_variance}')
+
 
             # Log the plot in TensorBoard
             self.logger.experiment.add_figure(title, plt.gcf(), global_step=self.current_epoch)
@@ -176,18 +175,17 @@ class Autoencoder(pl.LightningModule):
 
 if __name__ == "__main__":
     # Initialize the DataModule
-    BATCH_SIZE = 64
+    BATCH_SIZE = 256
     VAL_RATIO = 0.1
-
     HIDDEN_DIM_1 = 256
     HIDDEM_DIM_2 = 64
-    LATENT_DIM = 32
+    LATENT_DIM = 8
     LEARNING_RATE = 1e-4
     NUM_WORKERS = 4
-    N_EPOCHS=5
+    N_EPOCHS= 8
     DROPOUT_RATE = 0.1
 
-    VERSION  = "v1"
+    VERSION  = "v2_latent_8"
 
     data_module = AutoencoderDataModule(batch_size=BATCH_SIZE,
                                         val_ratio=VAL_RATIO,
@@ -239,7 +237,7 @@ if __name__ == "__main__":
         logger=logger,
         callbacks=[checkpoint_callback, lr_monitor],
         max_epochs=N_EPOCHS,
-        num_sanity_val_steps=0
+        num_sanity_val_steps=2
     )
 
     # # Train the model
