@@ -92,16 +92,20 @@ class AutoencoderDataModule(pl.LightningDataModule):
             df = pd.read_csv(self.train_path, usecols=['Label'])
             nb_train_samples = len(df) * (1-self.val_ratio)
             df = df[:int(nb_train_samples)]
+            df['Label'] = df['Label'].apply(lambda x: 'Benign' if x == 0 else 'Malicious')
             self.binary_labels_by_mode[mode] = df['Label'].tolist()
             return df['Label'].tolist()
+
         elif mode == 'val':
             df = pd.read_csv(self.train_path, usecols=['Label'])
             nb_train_samples = len(df) * (1-self.val_ratio)
             df = df[int(nb_train_samples):]
+            df['Label'] = df['Label'].apply(lambda x: 'Benign' if x == 0 else 'Malicious')
             self.binary_labels_by_mode[mode] = df['Label'].tolist()
             return df['Label'].tolist()
         elif mode == 'test':
             df = pd.read_csv(self.test_path, usecols=['Label'])
+            df['Label'] = df['Label'].apply(lambda x: 'Benign' if x == 0 else 'Malicious')
             self.binary_labels_by_mode[mode] = df['Label'].tolist()
             return df['Label'].tolist()
 
@@ -255,10 +259,12 @@ class AutoencoderDataModule(pl.LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=self.num_workers,
+                          shuffle=False,
                           persistent_workers=True)
 
     def test_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=self.num_workers,
+                          shuffle=False,
                           persistent_workers=True)
 
     def teardown(self, stage):

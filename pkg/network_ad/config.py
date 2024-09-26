@@ -43,12 +43,34 @@ BASE_FEATURES = [
     "L7_PROTO"  # Layer 7 protocol (numeric)
 ]
 
+BASE_CATEGORICAL_FEATURES = [
+    "NETWORK_IPV4_SRC_ADDR",
+    "HOST_IPV4_SRC_ADDR",
+    "NETWORK_IPV4_DST_ADDR",
+    "HOST_IPV4_DST_ADDR",
+    "DNS_QUERY_TYPE",
+    "L7_PROTO",
+    "PROTOCOL",
+    "L4_DST_PORT",
+    "L4_SRC_PORT",
+    "SERVER_TCP_FLAGS",
+    "TCP_FLAGS",
+    "CLIENT_TCP_FLAGS",
+    "FTP_COMMAND_RET_CODE",
+    "ICMP_TYPE",
+    "DNS_QUERY_ID",
+    "ICMP_IPV4_TYPE"
+]
+
+
+
 TEST_RATIO = 0.2
+VAL_RATIO = 0.2
 
 # AutoEncoder features
 BINARY_LABEL_COLUMN = "Label"
 MULTICLASS_LABEL_COLUMN = "Attack"
-MULTIClASS_CLASS_NAMES= ['Benign', 'Fuzzers', 'Generic', 'Reconnaissance', 'Exploits,' 'Analysis', 'Backdoor','DoS', 'Shellcode','Worms','Exploits','Shellcode']
+MULTIClASS_CLASS_NAMES= ['Benign', 'Fuzzers', 'Generic', 'Reconnaissance', 'Exploits', 'Analysis', 'Backdoor','DoS', 'Shellcode','Worms']
 BINARY_CLASS_NAMES = ['Benign', 'Malicious']
 
 NUMERICAL_FEATURES = [  # List of numerical features to compute stats for

@@ -1,47 +1,48 @@
-import matplotlib.cm
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import pytorch_lightning as pl
-import umap
-import matplotlib.pyplot as plt
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
+from torch.distributions import Normal, kl_divergence
 import numpy as np
-from sklearn.decomposition import PCA
+import matplotlib.cm
+import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from sklearn.decomposition import PCA
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from network_ad.config import LOGS_DIR, MAX_PLOT_POINTS, BINARY_CLASS_NAMES, MULTIClASS_CLASS_NAMES, VAL_RATIO
 from network_ad.unsupervised.autoencoder_datamodule import AutoencoderDataModule
 
 
-class Autoencoder(pl.LightningModule):
-    def __init__(self, input_dim, hidden_dim1=256, hidden_dim2=128, latent_dim=32, learning_rate=1e-3,
-                 dropout_rate=0.1,
-                 max_training_steps = None
-                 ):
+class VariationalAutoencoder(pl.LightningModule):
+    def __init__(self, input_dim, hidden_dim1=256, hidden_dim2=128, latent_dim=32, learning_rate=1e-3, dropout_rate=0.1,
+                 max_training_steps=None):
         """
         :param input_dim: The input dimension (number of features) of the autoencoder
         :param hidden_dim1: The number of neurons in the first hidden layer
         :param hidden_dim2: The number of neurons in the second hidden layer
         :param latent_dim: The latent dimension (number of neurons in the bottleneck layer)
         :param learning_rate: The learning rate for the optimizer
-        :param max_training_steps: The maximum number of training steps(used for the scheduler)
+        :param max_training_steps: The maximum number of training steps (used for the scheduler)
         """
-        super(Autoencoder, self).__init__()
+        super(VariationalAutoencoder, self).__init__()
         self.learning_rate = learning_rate
         self.max_training_steps = max_training_steps
         self.latent_dim = latent_dim
         self.dropout_rate = dropout_rate
-        # Encoder: 3 layers, input -> 256 -> 128 -> latent_dim (32)
+
+        # Encoder: input -> hidden1 -> hidden2 -> latent (mu and log_var)
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, hidden_dim1),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_dim1, hidden_dim2),
             nn.ReLU(),
-            nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim2, latent_dim)
+            nn.Dropout(dropout_rate)
         )
-
-        # Decoder: 3 layers, latent_dim (32) -> 128 -> 256 -> input
+        self.mu_layer = nn.Linear(hidden_dim2, latent_dim)
+        self.log_var_layer = nn.Linear(hidden_dim2, latent_dim)
+        self.beta = 1
+        # Decoder: latent -> hidden2 -> hidden1 -> input
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim2),
             nn.ReLU(),
@@ -55,59 +56,74 @@ class Autoencoder(pl.LightningModule):
         self.validation_step_outputs = np.zeros((0, latent_dim))
         self.test_step_outputs = np.zeros((0, latent_dim))
 
+    def encode(self, x):
+        hidden = self.encoder(x)
+        mu = self.mu_layer(hidden)
+        log_var = self.log_var_layer(hidden)
+        return mu, log_var
+
+    def reparameterize(self, mu, log_var):
+        std = torch.exp(0.5 * log_var)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+
+    def decode(self, z):
+        return self.decoder(z)
+
     def forward(self, x):
-        # Forward pass: encoder -> decoder
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
+        mu, log_var = self.encode(x)
+        z = self.reparameterize(mu, log_var)
+        decoded = self.decode(z)
+        return decoded, mu, log_var
+
+    def loss_function(self, reconstructed, x, mu, log_var):
+        # Reconstruction loss (MSE) with mean reduction
+        recon_loss = F.mse_loss(reconstructed, x, reduction='mean')
+
+        # KL Divergence with mean reduction
+        kl_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(), dim=1)
+        kl_loss = torch.mean(kl_loss)
+        return recon_loss, kl_loss
 
     def training_step(self, batch, batch_idx):
-        # Get inputs
         x = batch
+        reconstructed, mu, log_var = self.forward(x)
+        recon_loss, kl_loss = self.loss_function(reconstructed, x, mu, log_var)
+        loss= recon_loss + self.beta*kl_loss
 
-        # Forward pass
-        reconstructed = self.forward(x)
-
-        # Loss: MSE (Mean Squared Error)
-        loss = nn.functional.mse_loss(reconstructed, x)
-
-        # Log the loss
         self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-
+        self.log('recon_loss', recon_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('kl_loss', kl_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x = batch
-        encoded = self.encoder(x)
-        reconstructed = self.decoder(encoded)
-        val_loss = nn.functional.mse_loss(reconstructed, x)
+        reconstructed, mu, log_var = self.forward(x)
+        recon_loss, kl_loss = self.loss_function(reconstructed, x, mu, log_var)
+        val_loss = recon_loss + kl_loss
+        # Save latent representations for plotting
+        encoded = self.reparameterize(mu, log_var)
+        self.validation_step_outputs = np.concatenate((self.validation_step_outputs, encoded.cpu().detach().numpy()),
+                                                      axis=0)
 
-        # Save latent_dim representations and inputs for later  plotting
-        self.log('val_loss', val_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-
-        # Return encoded latent_dim for plotting
-        self.validation_step_outputs = np.concatenate((self.validation_step_outputs, encoded.cpu().detach().numpy()), axis=0)
+        self.log('val_loss', val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_recon_loss', recon_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_kl_loss', kl_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return val_loss
 
     def on_validation_epoch_end(self):
-        # Plotthe latent_dim representation
         self.plot_latent_space(self.validation_step_outputs[:MAX_PLOT_POINTS], mode='val')
-
-        # Reset the validation step outputs
         self.validation_step_outputs = np.zeros((0, self.latent_dim))
 
     def plot_latent_space(self, encoded, mode='val'):
-
         reducer = PCA(n_components=2)
         embedding = reducer.fit_transform(encoded)
 
         for label_type in ['binary', 'multiclass']:
             plt.figure(figsize=(5, 5))
-            # Get the labels to color the plot
             if label_type == 'binary':
-                labels = self.trainer.datamodule.get_binary_labels(mode)[:encoded.shape[0]]  # Assuming a method get_labels exists in your datamodule
+                labels = self.trainer.datamodule.get_binary_labels(mode)[:encoded.shape[0]]
                 class_names = BINARY_CLASS_NAMES
-                #cmap contains too colors : Red and blue
                 cmap = mcolors.ListedColormap(['royalblue', 'red'])
             else:
                 labels = self.trainer.datamodule.get_multiclass_labels(mode)[:encoded.shape[0]]
@@ -117,14 +133,12 @@ class Autoencoder(pl.LightningModule):
             found_labels = np.unique(labels)
             labels_names = list(filter(lambda x: x in found_labels, class_names))
             labels_to_idx = {label: i for i, label in enumerate(labels_names)}
-
             colors = [cmap(labels_to_idx[label]) for label in labels]
 
             bounds = np.arange(len(np.unique(labels)) + 1) - 0.5
             norm = mcolors.BoundaryNorm(bounds, cmap.N)
-            cbar = plt.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap), ticks=np.arange(len(np.unique(labels))))
-
-            # Create custom colorbar with two colors: blue (Normal) and red (Anomaly)
+            cbar = plt.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
+                                ticks=np.arange(len(np.unique(labels))))
             plt.scatter(embedding[:, 0], embedding[:, 1], c=colors, s=5)
             cbar.ax.set_yticklabels(labels_names)
 
@@ -132,95 +146,79 @@ class Autoencoder(pl.LightningModule):
             explained_variance = [round(e, 3) for e in explained_variance]
             title = f'PCA projection of latent_dim - {label_type} - {mode}'
             plt.title(title + '\n' + f'Explained variance: {explained_variance}')
-
-
-            # Log the plot in TensorBoard
             self.logger.experiment.add_figure(title, plt.gcf(), global_step=self.current_epoch)
             plt.close()
 
-
-
     def test_step(self, batch, batch_idx):
         x = batch
-        encoded = self.encoder(x)
-        reconstructed = self.decoder(encoded)
-        test_loss = nn.functional.mse_loss(reconstructed, x)
-
-        # Log the test loss
-        self.log('test_loss', test_loss)
+        reconstructed, mu, log_var = self.forward(x)
+        recon_loss, kl_loss = self.loss_function(reconstructed, x, mu, log_var)
+        test_loss = recon_loss + kl_loss
+        encoded = self.reparameterize(mu, log_var)
         self.test_step_outputs = np.concatenate((self.test_step_outputs, encoded.cpu().detach().numpy()), axis=0)
+        self.log('test_loss', test_loss)
+        self.log('test_recon_loss', recon_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('test_kl_loss', kl_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return test_loss
 
-    def on_test_epoch_end(self) -> None:
-        # Plot UMAP on the latent_dim representation
+    def on_test_epoch_end(self):
         self.plot_latent_space(self.test_step_outputs[:MAX_PLOT_POINTS], mode='test')
-
-        # Reset the test step outputs
         self.test_step_outputs = np.zeros((0, self.latent_dim))
 
     def configure_optimizers(self):
-        # Optimizer
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-
-        print("Max training steps: ", self.max_training_steps)
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
-                "scheduler": torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
-                                                T_max=self.max_training_steps,
-                                                eta_min=1e-6),
+                "scheduler": torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.max_training_steps,
+                                                                        eta_min=1e-6),
                 "monitor": "train_loss",
-                "interval": "step", # step means "batch" here, default: epoch   # New!
-                "frequency": 1, # default
+                "interval": "step",
+                "frequency": 1,
             },
         }
+
 
 if __name__ == "__main__":
     # Initialize the DataModule
     BATCH_SIZE = 256
     HIDDEN_DIM_1 = 256
-    HIDDEM_DIM_2 = 32
-    LATENT_DIM = 8
+    HIDDEM_DIM_2 = 64
+    LATENT_DIM = 2
     LEARNING_RATE = 1e-4
     NUM_WORKERS = 4
-    N_EPOCHS= 2
-    DROPOUT_RATE = 0
+    N_EPOCHS = 2
+    DROPOUT_RATE = 0.1
 
-    VERSION  = "v2_latent_dim8"
+    VERSION = "debug2"
 
     data_module = AutoencoderDataModule(batch_size=BATCH_SIZE,
                                         val_ratio=VAL_RATIO,
-                                        num_workers = NUM_WORKERS,
-                                        )
+                                        num_workers=NUM_WORKERS)
     data_module.setup()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # Get the input dimension (number of features)
     sample_batch = next(iter(data_module.train_dataloader()))
     input_dim = sample_batch.shape[1]
-    print("AutoEncoder configuration: "
-          f"Input dimension: {input_dim}, "
-          f"Batch size: {BATCH_SIZE}, "
-          f"Validation ratio: {VAL_RATIO}"
-          )
 
-    # Initialize Autoencoder model with input_dim
-    model = Autoencoder(input_dim=input_dim,
-                        hidden_dim1=HIDDEN_DIM_1,
-                        hidden_dim2=HIDDEM_DIM_2,
-                        latent_dim=LATENT_DIM,
-                        max_training_steps= len(data_module.train_dataloader()) * N_EPOCHS,
-                        learning_rate=LEARNING_RATE,
-                        dropout_rate=DROPOUT_RATE
-                        )
+    print(f"VAE configuration: Input dimension: {input_dim}, Batch size: {BATCH_SIZE}, Validation ratio: {VAL_RATIO}")
+
+    # Initialize Variational Autoencoder model
+    model = VariationalAutoencoder(input_dim=input_dim,
+                                   hidden_dim1=HIDDEN_DIM_1,
+                                   hidden_dim2=HIDDEM_DIM_2,
+                                   latent_dim=LATENT_DIM,
+                                   max_training_steps=len(data_module.train_dataloader()) * N_EPOCHS,
+                                   learning_rate=LEARNING_RATE,
+                                   dropout_rate=DROPOUT_RATE)
 
     # Define the TensorBoard logger
-    logger = pl.loggers.TensorBoardLogger(LOGS_DIR, name="autoencoder",version=VERSION)
+    logger = pl.loggers.TensorBoardLogger(LOGS_DIR, name="vae", version=VERSION)
 
     # Define the ModelCheckpoint callback (Save the best model based on validation loss)
     checkpoint_callback = ModelCheckpoint(
         monitor='val_loss',
-        dirpath=LOGS_DIR/'autoencoder'/VERSION,
-        filename='autoencoder-{epoch:02d}-{val_loss:.3f}',
+        dirpath=LOGS_DIR / 'vae' / VERSION,
+        filename='vae-{epoch:02d}-{val_loss:.3f}',
         save_top_k=1,
         save_last=True,
         mode='min'
@@ -238,10 +236,10 @@ if __name__ == "__main__":
         logger=logger,
         callbacks=[checkpoint_callback, lr_monitor],
         max_epochs=N_EPOCHS,
-        num_sanity_val_steps=0
+    num_sanity_val_steps=0
     )
 
-    # # Train the model
+    # Train the model
     trainer.fit(model, data_module, ckpt_path="last")
 
     # Test the model
