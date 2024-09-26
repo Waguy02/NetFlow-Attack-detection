@@ -11,6 +11,7 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
 1. **Download data**
 - Download data file from the following link 
  https://rdm.uq.edu.au/files/8c6e2a00-ef9c-11ed-827d-e762de186848
+- Create the direction `data/raw`
 - Extract `NF-UNSW-NB15-v2.csv` file to `data/raw` directory
 
 2. **Install Pkg**
