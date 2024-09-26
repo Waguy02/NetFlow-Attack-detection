@@ -182,7 +182,7 @@ if __name__ == "__main__":
     HIDDEM_DIM_2 = 64
     LATENT_DIM = 16
     LEARNING_RATE = 1e-3
-    NUM_WORKERS = 2
+    NUM_WORKERS = 1
     N_EPOCHS= 50
     DROPOUT_RATE = 0
 
