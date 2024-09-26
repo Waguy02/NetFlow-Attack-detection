@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
     # Initialize Autoencoder model with input_dim
     model = Autoencoder(input_dim=input_dim,
-                        hidden_dim1=HIDDEN_DIM,
+                        hidden_dim=HIDDEN_DIM,
                         latent_dim=LATENT_DIM,
                         max_training_steps= len(data_module.train_dataloader()) * N_EPOCHS,
                         learning_rate=LEARNING_RATE,
