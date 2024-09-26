@@ -17,7 +17,7 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
 - Recommended : Use conda or virtualenv to create a new environment (optional)
 - From the root directory of the project, run the following command to install the network_ad package
 ```bash
-  pip install -e .
+  pip install -e pkg
 ```
 
 ## Exploratory Data Analysis (EDA)
