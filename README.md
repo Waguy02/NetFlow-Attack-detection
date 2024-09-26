@@ -24,9 +24,11 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
  ####  Note : How to setup pyenv
  
    ``pyenv install 3.10.5``
+
    ``pyenv virtualenv 3.10.5 network_ad_env``
    
-   ``cd [PROJECT ROOT DIRECTORY]`` 
+   ``cd [PROJECT ROOT DIRECTORY]``
+
    ``pyenv local network_ad_env``
   
   
