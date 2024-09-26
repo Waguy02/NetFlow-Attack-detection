@@ -4,7 +4,7 @@ import lightgbm as lgb
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from network_ad.config import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, TRAIN_DATA_PATH, TEST_DATA_PATH, \
+from network_ad.config import AE_CATEGORICAL_FEATURES, AE_NUMERICAL_FEATURES, TRAIN_DATA_PATH, TEST_DATA_PATH, \
     BINARY_LABEL_COLUMN, MULTICLASS_LABEL_COLUMN
 
 print(BINARY_LABEL_COLUMN)
@@ -15,8 +15,8 @@ class LightGBMDataset:
                  multiclass=False):
         self.train_path = train_path
         self.test_path = test_path
-        self.categorical_features = CATEGORICAL_FEATURES
-        self.numerical_features = NUMERICAL_FEATURES
+        self.categorical_features = AE_CATEGORICAL_FEATURES
+        self.numerical_features = AE_NUMERICAL_FEATURES
         self.X_train = None
         self.y_train = None
         self.X_test = None

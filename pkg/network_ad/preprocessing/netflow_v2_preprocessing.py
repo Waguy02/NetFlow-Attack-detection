@@ -1,10 +1,11 @@
+import sys
+sys.path.append("../..")
 from typing import Tuple, Dict
 import pandas as pd
 import json
-from network_ad.config import DATA_PATH, BASE_FEATURES, TEST_RATIO, RAW_DATA_FILE, NUMERICAL_FEATURES, \
-    CATEGORICAL_FEATURES, PREPROCESSED_DATA_PATH
-import sys
-sys.path.append("../..")
+from network_ad.config import DATA_PATH, BASE_FEATURES, TEST_RATIO, RAW_DATA_FILE, AE_NUMERICAL_FEATURES, \
+    AE_CATEGORICAL_FEATURES, PREPROCESSED_DATA_PATH
+
 
 def load_raw_data() -> pd.DataFrame:
     """
@@ -70,7 +71,7 @@ def convert_categorical_features_to_string(data: pd.DataFrame) -> pd.DataFrame:
     :param data: The input dataframe
     :return: The dataframe with categorical features converted to string type
     """
-    for col in CATEGORICAL_FEATURES:
+    for col in AE_CATEGORICAL_FEATURES:
         data[col] = data[col].astype(str)
     return data
 
@@ -84,10 +85,10 @@ def compute_and_save_statistics(data: pd.DataFrame) -> Tuple[pd.DataFrame, Dict]
     :param save_path: Path to save the statistics
     """
     # Compute the mean and standard deviation for each numerical feature
-    numerical_stats = data[NUMERICAL_FEATURES].agg(['mean', 'std', 'min', 'max']).transpose()
+    numerical_stats = data[AE_NUMERICAL_FEATURES].agg(['mean', 'std', 'min', 'max']).transpose()
     # Save the distinc values of categorical features to json to fit one hot encoding
     categorical_stats = {}
-    for col in CATEGORICAL_FEATURES:
+    for col in AE_CATEGORICAL_FEATURES:
         categorical_stats[col] = data[col].unique().tolist()
     return numerical_stats, categorical_stats
 

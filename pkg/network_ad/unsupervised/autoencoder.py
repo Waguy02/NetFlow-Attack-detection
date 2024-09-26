@@ -15,7 +15,7 @@ from network_ad.unsupervised.autoencoder_datamodule import AutoencoderDataModule
 
 
 class Autoencoder(pl.LightningModule):
-    def __init__(self, input_dim, hidden_dim1=256, hidden_dim2=128, latent_dim=32, learning_rate=1e-3,
+    def __init__(self, input_dim, hidden_dim1=256, latent_dim=32, learning_rate=1e-3,
                  dropout_rate=0.1,
                  max_training_steps = None
                  ):
@@ -32,26 +32,20 @@ class Autoencoder(pl.LightningModule):
         self.max_training_steps = max_training_steps
         self.latent_dim = latent_dim
         self.dropout_rate = dropout_rate
-        # Encoder: 3 layers, input -> 256 -> 128 -> latent_dim (32)
+        # Encoder: 2 layers, input -> hidden_dim + activation -> latent_dim
         self.encoder = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim1),
+            nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim1, hidden_dim2),
-            nn.ReLU(),
-            nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim2, latent_dim)
+            nn.Linear(hidden_dim, latent_dim)
         )
 
-        # Decoder: 3 layers, latent_dim (32) -> 128 -> 256 -> input
+        # Decoder: 2 layers, latent_dim -> hidden_dim + activation -> input
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, hidden_dim2),
+            nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim2, hidden_dim1),
-            nn.ReLU(),
-            nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim1, input_dim),
+            nn.Linear(hidden_dim, input_dim),
             nn.Sigmoid()
         )
         self.validation_step_outputs = np.zeros((0, latent_dim))
@@ -179,12 +173,13 @@ class Autoencoder(pl.LightningModule):
 
 if __name__ == "__main__":
     # Initialize the DataModule
-    BATCH_SIZE = 256
-    HIDDEN_DIM_1 = 256
-    HIDDEM_DIM_2 = 32
+
+    BATCH_SIZE = 64
+
+    HIDDEN_DIM = 256
     LATENT_DIM = 8
     LEARNING_RATE = 1e-4
-    NUM_WORKERS = 4
+    NUM_WORKERS = 1
     N_EPOCHS= 2
     DROPOUT_RATE = 0
 
@@ -207,8 +202,7 @@ if __name__ == "__main__":
 
     # Initialize Autoencoder model with input_dim
     model = Autoencoder(input_dim=input_dim,
-                        hidden_dim1=HIDDEN_DIM_1,
-                        hidden_dim2=HIDDEM_DIM_2,
+                        hidden_dim1=HIDDEN_DIM,
                         latent_dim=LATENT_DIM,
                         max_training_steps= len(data_module.train_dataloader()) * N_EPOCHS,
                         learning_rate=LEARNING_RATE,

@@ -11,8 +11,8 @@ TEST_DATA_PATH = PREPROCESSED_DATA_PATH / "test.csv"
 NUMERICAL_STATS_PATH = PREPROCESSED_DATA_PATH / "numerical_stats.csv"
 CATEGORICAL_STATS_PATH = PREPROCESSED_DATA_PATH / "categorical_stats.json"
 
+# FEATURES
 
-#AUTOENCODER CONFIG BELOW
 BASE_FEATURES = [
     # Chosen according to Top 20 correlated features
     "Label",  # O =benign or 1 = malicious
@@ -73,7 +73,7 @@ MULTICLASS_LABEL_COLUMN = "Attack"
 MULTIClASS_CLASS_NAMES= ['Benign', 'Fuzzers', 'Generic', 'Reconnaissance', 'Exploits', 'Analysis', 'Backdoor','DoS', 'Shellcode','Worms']
 BINARY_CLASS_NAMES = ['Benign', 'Malicious']
 
-NUMERICAL_FEATURES = [  # List of numerical features to compute stats for
+AE_NUMERICAL_FEATURES = [  # List of numerical features to compute stats for
     "MIN_TTL",
     "MAX_TTL",
     "MIN_IP_PKT_LEN",
@@ -87,7 +87,7 @@ NUMERICAL_FEATURES = [  # List of numerical features to compute stats for
     "TCP_WIN_MAX_OUT"
 ]
 
-CATEGORICAL_FEATURES = [  # List of categorical features to compute stats for
+AE_CATEGORICAL_FEATURES = [  # List of categorical features to compute stats for
     "NETWORK_IPV4_SRC_ADDR",
     "HOST_IPV4_SRC_ADDR",
     "NETWORK_IPV4_DST_ADDR",
@@ -111,5 +111,7 @@ MAX_PLOT_POINTS = 100000
 
 AUTOENCODER_INPUT_DIMS = 704 #Not calculated but obtained from autoencoder datamodule.py (main)
 
+AE_PREPROCESSED_DATA_PATH = PREPROCESSED_DATA_PATH / "ae_preprocessed_data.h5"
+AE_TEMPORARY_DATA_PATH = PREPROCESSED_DATA_PATH / "ae_temporary_data.h5"
 
 LOGS_DIR  = HERE / ".." / ".." / "logs"
