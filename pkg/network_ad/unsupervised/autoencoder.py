@@ -174,7 +174,7 @@ class Autoencoder(pl.LightningModule):
 if __name__ == "__main__":
     # Initialize the DataModule
 
-    BATCH_SIZE = 64
+    BATCH_SIZE = 512
 
     HIDDEN_DIM = 256
     LATENT_DIM = 8
