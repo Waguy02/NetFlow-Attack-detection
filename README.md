@@ -14,11 +14,11 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
 - Create the directory `data/raw`
 - Extract `NF-UNSW-NB15-v2.csv` file to `data/raw` directory
 
-2. **Install Pkg**
+2. **Install requirmeents**
 - Recommended : Use conda or virtualenv to create a new environment (optional)
-- From the root directory of the project, run the following command to install the network_ad package
+- From the root directory of the project, run the following command to install the depencencies
 ```bash
-  pip install -e pkg
+  pip install -r pkg/requirements.txt
 ```
  
  ####  Note : How to setup pyenv

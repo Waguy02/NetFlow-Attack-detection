@@ -3,7 +3,8 @@ import pandas as pd
 import json
 from network_ad.config import DATA_PATH, BASE_FEATURES, TEST_RATIO, RAW_DATA_FILE, NUMERICAL_FEATURES, \
     CATEGORICAL_FEATURES, PREPROCESSED_DATA_PATH
-
+import sys
+sys.path.append("../..")
 
 def load_raw_data() -> pd.DataFrame:
     """

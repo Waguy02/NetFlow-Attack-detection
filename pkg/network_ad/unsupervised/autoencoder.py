@@ -1,3 +1,5 @@
+import sys
+sys.path.append("../..")
 import matplotlib.cm
 import torch
 import torch.nn as nn

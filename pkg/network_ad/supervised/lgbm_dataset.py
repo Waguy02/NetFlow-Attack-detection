@@ -1,3 +1,5 @@
+import sys
+sys.path.append("../..")
 import lightgbm as lgb
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
@@ -5,6 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 from network_ad.config import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, TRAIN_DATA_PATH, TEST_DATA_PATH, \
     BINARY_LABEL_COLUMN, MULTICLASS_LABEL_COLUMN
 
+print(BINARY_LABEL_COLUMN)
 
 class LightGBMDataset:
     def __init__(self, train_path=TRAIN_DATA_PATH,
