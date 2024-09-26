@@ -184,10 +184,10 @@ if __name__ == "__main__":
     BATCH_SIZE = 256
     HIDDEN_DIM_1 = 256
     HIDDEM_DIM_2 = 64
-    LATENT_DIM = 2
-    LEARNING_RATE = 1e-4
+    LATENT_DIM = 16
+    LEARNING_RATE = 1e-3
     NUM_WORKERS = 4
-    N_EPOCHS = 2
+    N_EPOCHS = 50
     DROPOUT_RATE = 0.1
 
     VERSION = "debug2"
