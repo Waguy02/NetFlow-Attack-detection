@@ -3,8 +3,9 @@ Network Anomaly Detection
 
 Detecting attacks on IP network using Node2Vec embedding representation and supervised classification.
 
+# Instructions 
 
-# Setup (Instructions)
+## Setup
 
 ----
 1. **Download data**
@@ -19,6 +20,10 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
   pip install -e .
 ```
 
-## Preprocessing 
+## Exploratory Data Analysis (EDA)
+
+- Complete the notebook notebooks/eda.ipynb
+
+
 
 

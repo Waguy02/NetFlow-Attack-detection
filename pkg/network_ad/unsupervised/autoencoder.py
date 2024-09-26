@@ -179,14 +179,14 @@ if __name__ == "__main__":
     # Initialize the DataModule
     BATCH_SIZE = 256
     HIDDEN_DIM_1 = 256
-    HIDDEM_DIM_2 = 64
-    LATENT_DIM = 16
-    LEARNING_RATE = 1e-3
-    NUM_WORKERS = 1
-    N_EPOCHS= 50
+    HIDDEM_DIM_2 = 32
+    LATENT_DIM = 8
+    LEARNING_RATE = 1e-4
+    NUM_WORKERS = 4
+    N_EPOCHS= 2
     DROPOUT_RATE = 0
 
-    VERSION  = "v2_latent_dim16"
+    VERSION  = "v2_latent_dim8"
 
     data_module = AutoencoderDataModule(batch_size=BATCH_SIZE,
                                         val_ratio=VAL_RATIO,
