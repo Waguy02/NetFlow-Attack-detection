@@ -139,6 +139,7 @@ def save_data(train_data: pd.DataFrame,
 
 if __name__ == "__main__":
 
+
     print("1. Loading Raw Data...")
     df  = load_raw_data()
 
