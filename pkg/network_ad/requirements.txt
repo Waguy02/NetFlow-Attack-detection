@@ -10,3 +10,4 @@ umap-learn
 lightgbm
 plotly.express
 tensorboard
+matplotlib==3.5.2
