@@ -190,7 +190,11 @@ if __name__ == "__main__":
                                         num_workers = NUM_WORKERS,
                                         )
     data_module.setup()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    try :
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    except :
+        device = "cpu"
+
     # Get the input dimension (number of features)
     sample_batch = next(iter(data_module.train_dataloader()))
     input_dim = sample_batch.shape[1]

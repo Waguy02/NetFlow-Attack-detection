@@ -47,7 +47,7 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
 - Ensure that you also perform a randomized train/test split of the data in that script
 
 
-### Autoencoder
+## Autoencoder
  
  - Introduction to Autoencoders model
 
@@ -56,7 +56,17 @@ and perform OneHotEncoding of the categorical features, Standardization of the n
    
  - Implement the Autoencoder model in the `script/autoencoder.py` script
 ` 
+ - You have a implementation of the same model under pytorch lightning : `autoeconder_lightning.py`
+
+
+ - Train the model : 
+ ```
+ cd pkg/network_ad/unsupervised
+ python autoencoder_lightning.py
+ ```
  
+- Complete the notebook  `clustering_autoencoder_latent.ipynb` notebook
+
  
 
  
