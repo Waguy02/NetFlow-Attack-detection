@@ -37,6 +37,29 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
 
 - Complete the notebook notebooks/eda.ipynb
 
+- Select relevant features for the model based on Correlation and Domain knowledge
+
+
+## Data Preprocessing
+
+- Write  a general preprocessing script callled : `netflow_v2_preprocessing.py` to clean the data and save the relevant features in new csv file
+
+- Ensure that you also perform a randomized train/test split of the data in that script
+
+
+### Autoencoder
+ 
+ - Gentle introduction to Autoencoders model
+
+ - Write a new preprocessing script called `netflow_v2_preprocessing_autoencoder.py` to clean to use the output of the previous script \
+and perform OneHotEncoding of the categorical features, Standardization of the numerical features
+ 
+ - Implement the Autoencoder model in the `autoencoder.py` script
+ 
+ 
+
+ 
+
 
 
 
