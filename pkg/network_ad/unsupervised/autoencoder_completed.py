@@ -138,9 +138,12 @@ def test_autoencoder(model, dataloader, criterion, device):
 
 
 if __name__ == "__main__":
-    BATCH_SIZE = 512
+    BATCH_SIZE = 256
+
     HIDDEN_DIM = 256
+
     LATENT_DIM = 8
+
     LEARNING_RATE = 1e-4
     N_EPOCHS = 2
     DROPOUT_RATE = 0.1

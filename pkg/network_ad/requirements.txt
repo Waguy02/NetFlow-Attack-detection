@@ -9,3 +9,4 @@ pytorch_lightning
 umap-learn
 lightgbm
 plotly.express
+tensorboard
