@@ -32,8 +32,8 @@ def ae_preprocess_data(mode, train_path, test_path, numerical_stats, categorical
 
         for feature in AE_CATEGORICAL_FEATURES:
             df[feature] = df[feature].astype(str)
-        # return df
-        return df.sample(frac=0.01)
+        return df
+        # return df.sample(frac=0.01)
 
     if mode == 'train':
         df = load_data('train')
