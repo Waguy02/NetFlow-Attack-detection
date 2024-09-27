@@ -20,27 +20,26 @@ class Autoencoder(nn.Module):
         self.latent_dim = latent_dim
         self.dropout_rate = dropout_rate
 
-        # TODO: Implement the encoder. It should contain two layers:
-        # 1. A linear layer that maps `input_dim` to `hidden_dim`
-        # 2. A ReLU activation and dropout with `dropout_rate`
-        # 3. Another linear layer that maps `hidden_dim` to `latent_dim`
+        # Encoder: 2 layers, input -> hidden_dim + activation -> latent_dim
         self.encoder = nn.Sequential(
-            # Your code here
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_dim, latent_dim)
         )
 
-        # TODO: Implement the decoder. It should reverse the encoder steps:
-        # 1. A linear layer that maps `latent_dim` to `hidden_dim`
-        # 2. A ReLU activation and dropout with `dropout_rate`
-        # 3. Another linear layer that maps `hidden_dim` back to `input_dim`
-        # 4. Sigmoid activation function
+        # Decoder: 2 layers, latent_dim -> hidden_dim + activation -> input
         self.decoder = nn.Sequential(
-            # Your code here
+            nn.Linear(latent_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_dim, input_dim),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
-        # TODO: Complete the forward function by encoding and then decoding `x`.
         encoded = self.encoder(x)
-        decoded =  # Your code here
+        decoded = self.decoder(encoded)
         return decoded
 
 
@@ -51,21 +50,15 @@ def train_autoencoder(model, dataloader, optimizer, scheduler, criterion, device
     for batch_idx, batch in enumerate(loop):
         batch = batch.to(device)
         optimizer.zero_grad()
-
-        # TODO: Forward pass: feed the batch to the model
-        reconstructed =  # Your code here
-
-        # TODO: Compute the loss between the reconstructed output and the original batch
-        loss =  # Your code here
-
+        reconstructed = model(batch)
+        loss = criterion(reconstructed, batch)
         loss.backward()
         optimizer.step()
         scheduler.step()  # Step the learning rate scheduler after each batch
 
+        # Log the loss and learning rate
         current_lr = optimizer.param_groups[0]['lr']
         train_loss += loss.item()
-
-        # TODO: Log the training loss and learning rate in TensorBoard using `writer`
         writer.add_scalar('Loss/Train', loss.item(), epoch * len(dataloader) + batch_idx)
         writer.add_scalar('Learning Rate', current_lr, epoch * len(dataloader) + batch_idx)
 
@@ -81,18 +74,12 @@ def validate_autoencoder(model, dataloader, criterion, device, epoch, writer):
     with torch.no_grad():
         for batch_idx, batch in enumerate(loop):
             batch = batch.to(device)
-
-            # TODO: Encode the batch using the model's encoder
-            encoded =  # Your code here
-
-            # TODO: Decode the encoded representation back to input dimensions
-            reconstructed =  # Your code here
-
-            # TODO: Compute the validation loss
-            loss =  # Your code here
+            encoded = model.encoder(batch)
+            reconstructed = model.decoder(encoded)
+            loss = criterion(reconstructed, batch)
             val_loss += loss.item()
 
-            # TODO: Log the validation loss using `writer`
+            # Log validation loss
             writer.add_scalar('Loss/Val', loss.item(), epoch * len(dataloader) + batch_idx)
 
             latent_representations = np.concatenate((latent_representations, encoded.cpu().numpy()), axis=0)
@@ -128,7 +115,7 @@ def plot_latent_space(writer, encoded, labels, class_names, label_type, epoch, m
     title = f'PCA projection of latent_dim - {label_type} - {mode}'
     plt.title(title + '\n' + f'Explained variance: {explained_variance}')
 
-    # TODO: Save the plot to TensorBoard using `writer`
+    # Save plot to TensorBoard
     writer.add_figure(title, plt.gcf(), global_step=epoch)
     plt.close()
 
@@ -141,17 +128,10 @@ def test_autoencoder(model, dataloader, criterion, device):
     with torch.no_grad():
         for batch in loop:
             batch = batch.to(device)
-
-            # TODO: Encode the batch using the model's encoder
-            encoded =  # Your code here
-
-            # TODO: Decode the encoded representation back to input dimensions
-            reconstructed =  # Your code here
-
-            # TODO: Compute the test loss
-            loss =  # Your code here
+            encoded = model.encoder(batch)
+            reconstructed = model.decoder(encoded)
+            loss = criterion(reconstructed, batch)
             test_loss += loss.item()
-
             latent_representations = np.concatenate((latent_representations, encoded.cpu().numpy()), axis=0)
             loop.set_postfix(test_loss=loss.item())  # Display the current test loss in tqdm bar
     return test_loss / len(dataloader), latent_representations
@@ -173,22 +153,21 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # TODO: Get the input dimension from a sample batch
+    # Get the input dimension (number of features)
     sample_batch = next(iter(data_module.train_dataloader()))
-    input_dim =  # Your code here
+    input_dim = sample_batch.shape[1]
     print(
         f"AutoEncoder configuration: Input dimension: {input_dim}, "
         f"Latent dimension: {LATENT_DIM}, Hidden dimension: {HIDDEN_DIM}, Dropout rate: {DROPOUT_RATE}, "
         f"Batch size: {BATCH_SIZE}, Validation ratio: {VAL_RATIO}")
 
-    # TODO: Initialize the Autoencoder model
     model = Autoencoder(input_dim=input_dim, hidden_dim=HIDDEN_DIM, latent_dim=LATENT_DIM, dropout_rate=DROPOUT_RATE)
     model = model.to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = nn.MSELoss()
 
-    # TODO: Initialize the learning rate scheduler
+    # Cosine Annealing scheduler
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=len(data_module.train_dataloader()) * N_EPOCHS,
                                                      eta_min=1e-6)
 
@@ -200,7 +179,7 @@ if __name__ == "__main__":
 
         print(f"Epoch {epoch + 1}, Train Loss: {train_loss}, Val Loss: {val_loss}")
 
-        # TODO: Plot latent space at the end of validation using the `plot_latent_space` function
+        # Plot latent space at the end of validation
         labels = data_module.get_binary_labels('val')[:val_latent_representations.shape[0]]
         plot_latent_space(writer, val_latent_representations[:MAX_PLOT_POINTS], labels, BINARY_CLASS_NAMES, 'binary',
                           epoch)
@@ -208,10 +187,10 @@ if __name__ == "__main__":
     test_loss, test_latent_representations = test_autoencoder(model, data_module.test_dataloader(), criterion, device)
     print(f"Test Loss: {test_loss}")
 
-    # TODO: Log the test loss using `writer`
+    # Log test loss to TensorBoard
     writer.add_scalar('Loss/Test', test_loss, N_EPOCHS)
 
-    # TODO: Plot latent space at the end of the test using the `plot_latent_space` function
+    # Plot latent space at the end of test
     labels = data_module.get_binary_labels('test')[:test_latent_representations.shape[0]]
     plot_latent_space(writer, test_latent_representations[:MAX_PLOT_POINTS], labels, BINARY_CLASS_NAMES, 'binary',
                       N_EPOCHS)

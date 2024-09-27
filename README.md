@@ -49,12 +49,13 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
 
 ### Autoencoder
  
- - Gentle introduction to Autoencoders model
+ - Introduction to Autoencoders model
 
  - Write a new preprocessing script called `netflow_v2_preprocessing_autoencoder.py` to clean to use the output of the previous script \
 and perform OneHotEncoding of the categorical features, Standardization of the numerical features
- 
- - Implement the Autoencoder model in the `autoencoder.py` script
+   
+ - Implement the Autoencoder model in the `script/autoencoder.py` script
+` 
  
  
 
