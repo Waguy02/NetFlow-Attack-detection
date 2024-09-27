@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+from matplotlib import cm
 import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.colors as mcolors
@@ -105,7 +106,7 @@ def plot_latent_space(writer, encoded, labels, class_names, label_type, epoch, m
 
     bounds = np.arange(len(np.unique(labels)) + 1) - 0.5
     norm = mcolors.BoundaryNorm(bounds, cmap.N)
-    cbar = plt.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap), ticks=np.arange(len(np.unique(labels))))
+    cbar = plt.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ticks=np.arange(len(np.unique(labels))))
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=colors, s=5)
     cbar.ax.set_yticklabels(labels_names)
