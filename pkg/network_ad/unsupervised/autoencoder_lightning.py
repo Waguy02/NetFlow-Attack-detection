@@ -179,7 +179,7 @@ if __name__ == "__main__":
     HIDDEN_DIM = 256
     LATENT_DIM = 8
     LEARNING_RATE = 1e-4
-    NUM_WORKERS = 1
+    NUM_WORKERS = 2
     N_EPOCHS= 2
     DROPOUT_RATE = 0
 
