@@ -115,6 +115,7 @@ if __name__ == "__main__":
     for feature in AE_CATEGORICAL_FEATURES:
         categorical_encoders[feature] = OneHotEncoder(categories=[categorical_stats[feature]],
                                                       sparse=False,
+                                                           # sparse_output=False  #If error with sparse
                                                            handle_unknown="ignore")
         categorical_encoders[feature].fit(np.array(categorical_stats[feature]).reshape(-1, 1))
 
