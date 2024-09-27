@@ -9,5 +9,7 @@ pytorch_lightning
 umap-learn
 lightgbm
 plotly.express
-tensorboard
-matplotlib==3.5.2
+tensorboard==2.9.1
+matplotlib==3.5.2   #If Error with this version use matplotlib==3.7
+Pillow==9.1.0 #To install
+numpy==1.26
