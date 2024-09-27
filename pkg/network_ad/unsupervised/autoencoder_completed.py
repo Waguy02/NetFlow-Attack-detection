@@ -148,11 +148,14 @@ if __name__ == "__main__":
     LEARNING_RATE = 1e-4
     N_EPOCHS = 2
     DROPOUT_RATE = 0.1
+    NUM_WORKERS=4
 
     # Initialize TensorBoard SummaryWriter
     writer = SummaryWriter(LOGS_DIR / "autoencoder" / "tensorboard_logs")
 
-    data_module = AutoencoderDataModule(batch_size=BATCH_SIZE, val_ratio=VAL_RATIO)
+    data_module = AutoencoderDataModule(batch_size=BATCH_SIZE, val_ratio=VAL_RATIO,
+                                        num_workers= NUM_WORKERS
+                                        )
     data_module.setup()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
