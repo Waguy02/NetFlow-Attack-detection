@@ -67,7 +67,6 @@ def ae_preprocess_data(mode, train_path, test_path, numerical_stats, categorical
 
                 numerical_data = row[AE_NUMERICAL_FEATURES].values.astype(np.float32)
                 numerical_scaled = (numerical_data - numerical_stats['mean'].values) / numerical_stats['std'].values
-
                 categorical_encoded = np.hstack(categorical_data_list).squeeze()
                 features = np.hstack((numerical_scaled, categorical_encoded)).astype(np.float32)
                 sub_dataset[idx] = features
@@ -115,6 +114,7 @@ if __name__ == "__main__":
     # Create one-hot encoders for each categorical feature
     for feature in AE_CATEGORICAL_FEATURES:
         categorical_encoders[feature] = OneHotEncoder(categories=[categorical_stats[feature]],
+                                                      sparse=False,
                                                            handle_unknown="ignore")
         categorical_encoders[feature].fit(np.array(categorical_stats[feature]).reshape(-1, 1))
 
