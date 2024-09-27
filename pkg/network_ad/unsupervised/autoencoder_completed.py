@@ -159,6 +159,7 @@ if __name__ == "__main__":
     data_module.setup()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # device = "cpu"
 
     # Get the input dimension (number of features)
     sample_batch = next(iter(data_module.train_dataloader()))
@@ -204,3 +205,5 @@ if __name__ == "__main__":
 
     # Close the TensorBoard writer
     writer.close()
+
+    # S

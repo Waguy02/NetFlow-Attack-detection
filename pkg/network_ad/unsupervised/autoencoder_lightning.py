@@ -15,7 +15,7 @@ from network_ad.unsupervised.autoencoder_datamodule import AutoencoderDataModule
 
 
 class Autoencoder(pl.LightningModule):
-    def __init__(self, input_dim, hidden_dim=256, latent_dim=32, learning_rate=1e-3,
+    def __init__(self, input_dim=704, hidden_dim=256, latent_dim=32, learning_rate=1e-3,
                  dropout_rate=0.1,
                  max_training_steps = None
                  ):
@@ -50,7 +50,7 @@ class Autoencoder(pl.LightningModule):
         )
         self.validation_step_outputs = np.zeros((0, latent_dim))
         self.test_step_outputs = np.zeros((0, latent_dim))
-
+        self.save_hyperparameters()
     def forward(self, x):
         # Forward pass: encoder -> decoder
         encoded = self.encoder(x)
