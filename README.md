@@ -42,7 +42,7 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
 
 ## Data Preprocessing
 
-- Write  a general preprocessing script callled : `netflow_v2_preprocessing.py` to clean the data and save the relevant features in new csv file
+- Write  a general preprocessing script called : `netflow_v2_preprocessing.py` to clean the data and save the relevant features in new csv file
 
 - Ensure that you also perform a randomized train/test split of the data in that script
 
@@ -51,7 +51,7 @@ Detecting attacks on IP network using Node2Vec embedding representation and supe
  
  - Introduction to Autoencoders model
 
- - Write a new preprocessing script called `netflow_v2_preprocessing_autoencoder.py` to clean to use the output of the previous script \
+ We write a new preprocessing script called `netflow_v2_preprocessing_autoencoder.py` to clean to use the output of the previous script \
 and perform OneHotEncoding of the categorical features, Standardization of the numerical features
    
  - Implement the Autoencoder model in the `script/autoencoder.py` script
@@ -65,7 +65,14 @@ and perform OneHotEncoding of the categorical features, Standardization of the n
  python autoencoder_lightning.py
  ```
  
+## Assignment 1
+
 - Complete the notebook  `clustering_autoencoder_latent.ipynb` notebook
+- You should first completely run the script `autoencoder_lightning.py` to train the autoencoder
+model. Once trained, copy the absolute path of the .ckpt file in logs/autoencoder/v2_latent_dim8
+and set the value of the variable `CHECKPOINT_PATH`
+- Follow the next instructions of the notebooks to complete it.
+
 
  
 
