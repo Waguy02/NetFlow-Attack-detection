@@ -176,17 +176,20 @@ if __name__ == "__main__":
     # Test the train_dataloader
     print("Train DataLoader:")
     for batch in data_module.train_dataloader():
-        print(f"Train Batch X: {batch.shape}")
+        print(f"First batch , batch" )
+        print(f"Train Batch X : {batch.shape}")
         break  # Only show one batch
 
     # Test the val_dataloader
     print("Validation DataLoader:")
     for batch in data_module.val_dataloader():
+        print(f"First batch , batch")
         print(f"Validation Batch X: {batch.shape}")
         break  # Only show one batch
 
     # Test the test_dataloader
     print("Test DataLoader:")
     for batch in data_module.test_dataloader():
+        print(f"First batch , batch")
         print(f"Test Batch X: {batch.shape}")
         break  # Only show one batch

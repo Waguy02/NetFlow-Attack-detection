@@ -185,7 +185,7 @@ if __name__ == "__main__":
 
         # Plot latent space at the end of validation
         labels = data_module.get_binary_labels('val')[:val_latent_representations.shape[0]]
-        plot_latent_space(writer, val_latent_representations[:MAX_PLOT_POINTS], labels, BINARY_CLASS_NAMES, 'binary',
+        plot_latent_space(writer, val_latent_representations, labels, BINARY_CLASS_NAMES, 'binary',
                           epoch)
 
     test_loss, test_latent_representations = test_autoencoder(model, data_module.test_dataloader(), criterion, device)
@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
     # Plot latent space at the end of test
     labels = data_module.get_binary_labels('test')[:test_latent_representations.shape[0]]
-    plot_latent_space(writer, test_latent_representations[:MAX_PLOT_POINTS], labels, BINARY_CLASS_NAMES, 'binary',
+    plot_latent_space(writer, test_latent_representations, labels, BINARY_CLASS_NAMES, 'binary',
                       N_EPOCHS)
 
     # Close the TensorBoard writer

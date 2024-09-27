@@ -107,7 +107,7 @@ AE_CATEGORICAL_FEATURES = [  # List of categorical features to compute stats for
 
 SEED = 42
 
-MAX_PLOT_POINTS = 100000
+MAX_PLOT_POINTS = 1000000
 
 AUTOENCODER_INPUT_DIMS = 704 #Not calculated but obtained from autoencoder datamodule.py (main)
 
