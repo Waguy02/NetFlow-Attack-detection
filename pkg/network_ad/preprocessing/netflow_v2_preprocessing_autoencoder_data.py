@@ -32,7 +32,8 @@ def ae_preprocess_data(mode, train_path, test_path, numerical_stats, categorical
 
         for feature in AE_CATEGORICAL_FEATURES:
             df[feature] = df[feature].astype(str)
-        return df
+        # return df
+        return df.sample(frac=0.01)
 
     if mode == 'train':
         df = load_data('train')
@@ -113,10 +114,22 @@ if __name__ == "__main__":
         categorical_stats = json.load(f)
     # Create one-hot encoders for each categorical feature
     for feature in AE_CATEGORICAL_FEATURES:
-        categorical_encoders[feature] = OneHotEncoder(sparse=False,
-                                                           categories=[categorical_stats[feature]],
+        categorical_encoders[feature] = OneHotEncoder(categories=[categorical_stats[feature]],
                                                            handle_unknown="ignore")
         categorical_encoders[feature].fit(np.array(categorical_stats[feature]).reshape(-1, 1))
+
+
+    # for feature in AE_CATEGORICAL_FEATURES:
+    #     values =  categorical_stats[feature]
+    #     print(f"One hot encoding vectors of feature :  {feature}")
+    #     encoder = categorical_encoders[feature]
+    #     for value in values:
+    #         print(value, ":", encoder.transform([[value]]))
+    #     print("\n \n")
+    # sys.exit()
+
+
+
 
     ae_preprocess_data('train', TRAIN_DATA_PATH, TEST_DATA_PATH, numerical_stats, categorical_encoders)
     ae_preprocess_data('val', TRAIN_DATA_PATH, TEST_DATA_PATH, numerical_stats, categorical_encoders)
