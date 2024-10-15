@@ -65,9 +65,17 @@ and perform OneHotEncoding of the categorical features, Standardization of the n
  python autoencoder_lightning.py
  ```
  
-## Assignment 1
+## Assignment 1 (Update)
 
-- Complete the notebook  `clustering_autoencoder_latent.ipynb` notebook
+- Complete the notebook  `clustering_autoencoder_latent.ipynb` based on the content
+of the notebook `clustering_autoencoder_latent_completed':
+  - Everything is done in 'clustering_autoencoder_latent_completed' notebook except
+    - The plotting of annotation over poitns in projection
+    - The part 6
+  
+  - Additional question : 
+    - Replace PCA with UMAP and compare the plots.
+- 
 - You should first completely run the script `autoencoder_lightning.py` to train the autoencoder
 model. Once trained, copy the absolute path of the .ckpt file in logs/autoencoder/v2_latent_dim8
 and set the value of the variable `CHECKPOINT_PATH`
@@ -76,27 +84,40 @@ and set the value of the variable `CHECKPOINT_PATH`
 
  
 ## Supervised Learning
-
 We will implement two learning algorithm to supervisely detect Attack.
 - LightGBM : A  perform gradient boosting algorithm
 - A MultiLayer Perceptron with 2 hidden layers :
 
- 
-
-
 ## Assignment 2
 - Train both lightgbm and mlp using multiclass labels.
- 
+
+### Part 1 : MLP
 - Improving the MLP classifier performance
-  - Note : You should focus on `f1_score` rather than `accuracy`
+  - Note : You should focus on `f1_score_macro` on the validation set  rather than `accuracy`
   
 - Hint:
-  - The file to update is `pkg/network_ad/supervised/mlp_attack_classifier` 
-  - You can add 1 or 2 hidden layers and increase the number of neurons of hidden layers
-
-- Make sure you are not overfitting.
+  1. First update: Increase the number of neurons of the hidden layers
+  2. Add 2 more hidden layers to the model
 
 
+### Part 2 : LightGBM
+
+- Hyperparameter tuning
+  - Create a file called `lightgbm_hyperparameter_tuning.py` in the `pkg/network_ad/supervised` directory
+  - You should use the `optuna` library to perform the hyperparameter tuning
+    - Here is an example of how to use optuna with lightgbm : https://github.com/optuna/optuna-examples/blob/main/lightgbm/lightgbm_simple.py
+    - You should use the `f1_score_macro` as the objective function
+  
+- Train the model in file 'pkg/network_ad/supervised/lgbm.py' using the best hyperparameters found in the previous step
+- Evaluate the model on the test set
+- Run the explanation notebook using hte model obtained in the previous step
+
+
+Note : For each of the above parts, run first using binary labels and then multiclass labels
+
+
+
+## Due Date : 01/11/2024
 
 
 
