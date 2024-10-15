@@ -184,7 +184,7 @@ if __name__ == '__main__':
     BATCH_SIZE = 64
     HIDDEN_DIMS = [256, 128]
     LEARNING_RATE = 1e-3
-    N_EPOCHS = 1
+    N_EPOCHS = 2
     DROPOUT_RATE = 0.1
     LABEL_TYPE = "multiclass"
     VERSION = f"mlp_classifier_{LABEL_TYPE}"
