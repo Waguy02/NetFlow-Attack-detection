@@ -102,7 +102,7 @@ class LightGBMClassifier:
             self._log_confusion_matrix(val_cm, 'Validation Confusion Matrix')
 
             # Cm normalized
-            val_cm_norm = compute_confusion_matrix(y_val, val_preds,  labels=self.class_labels, normalize=True)
+            val_cm_norm = compute_confusion_matrix(y_val, val_preds,  self.class_labels, normalize=True)
             self._log_confusion_matrix(val_cm_norm, 'Normalized Validation Confusion Matrix', normalize=True)
 
             with open(self.log_dir / "val_metrics.json", 'w') as f:
