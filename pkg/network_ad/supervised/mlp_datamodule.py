@@ -103,7 +103,7 @@ class MLP_Dataset(Dataset):
 
         if self.label_type == "binary":
             binary_label = self.binary_labels[idx]
-            label = torch.tensor([binary_label], dtype=torch.float32)
+            label = torch.tensor(binary_label, dtype=torch.float32)
         else:
             multiclass_label = self.multiclass_labels[idx]
             label = torch.tensor(MULTIClASS_CLASS_LABELS_TO_ID[multiclass_label])

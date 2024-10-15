@@ -96,7 +96,7 @@ class MLPClassifier(pl.LightningModule):
         class_labels = MULTIClASS_CLASS_NAMES if self.multiclass else BINARY_CLASS_NAMES
 
         # Confusion Matrix
-        cm_fig=  compute_confusion_matrix(targets.cpu(), preds.cpu(), class_labels)
+        cm_fig= compute_confusion_matrix(targets.cpu(), preds.cpu(), class_labels)
         self.logger.experiment.add_figure('Confusion Matrix', cm_fig, self.current_epoch)
 
 
@@ -184,9 +184,9 @@ if __name__ == '__main__':
     BATCH_SIZE = 64
     HIDDEN_DIMS = [256, 128]
     LEARNING_RATE = 1e-3
-    N_EPOCHS = 10
+    N_EPOCHS = 1
     DROPOUT_RATE = 0.1
-    LABEL_TYPE = "binary"
+    LABEL_TYPE = "multiclass"
     VERSION = f"mlp_classifier_{LABEL_TYPE}"
 
 
@@ -206,7 +206,7 @@ if __name__ == '__main__':
                           )
 
     # Initialize TensorBoard logger
-    logger = TensorBoardLogger("logs", name="mlp_classifier", version=VERSION)
+    logger = TensorBoardLogger(LOGS_DIR/"mlp_classifier/"/VERSION, name="mlp_classifier", version=VERSION)
 
     # Define checkpoint callback to save the best model based on validation loss
     checkpoint_callback = ModelCheckpoint(
@@ -228,7 +228,7 @@ if __name__ == '__main__':
         logger=logger,
         callbacks=[checkpoint_callback, lr_monitor],
         check_val_every_n_epoch=1,
-
+        num_sanity_val_steps=0,
     )
 
     # Train the model
