@@ -53,6 +53,13 @@ class AutoencoderDataModule(pl.LightningDataModule):
     def load_data(self, mode):
         if mode == 'train':
             df = pd.read_csv(self.train_path)
+            #Split
+            nb_train_samples = len(df) * (1-self.val_ratio)
+            df = df[:int(nb_train_samples)]
+        elif mode == 'val':
+            df = pd.read_csv(self.train_path)
+            nb_train_samples = len(df) * (1-self.val_ratio)
+            df = df[int(nb_train_samples):]
         elif mode == 'test':
             df = pd.read_csv(self.test_path)
         else:

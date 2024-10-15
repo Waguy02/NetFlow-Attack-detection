@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 from network_ad.config import AE_CATEGORICAL_FEATURES, AE_NUMERICAL_FEATURES, TRAIN_DATA_PATH, TEST_DATA_PATH, \
-    BINARY_LABEL_COLUMN, MULTICLASS_LABEL_COLUMN
+    BINARY_LABEL_COLUMN, MULTICLASS_LABEL_COLUMN,VAL_RATIO
 
 print(BINARY_LABEL_COLUMN)
 
@@ -29,6 +29,12 @@ class LightGBMDataset:
         """Load training or test data."""
         if mode == 'train':
             df = pd.read_csv(self.train_path)
+            num_train_samples = len(df)*(1-VAL_RATIO)
+            df = df[:int(num_train_samples)]
+        elif mode == 'val':
+            df = pd.read_csv(self.train_path)
+            num_train_samples = len(df)*(VAL_RATIO)
+            df = df[int(num_train_samples):]
         elif mode == 'test':
             df = pd.read_csv(self.test_path)
         else:
@@ -49,15 +55,21 @@ class LightGBMDataset:
         """Load and prepare the data for LightGBM."""
         # Load the train and test data
         train_df = self.load_data('train')
+        val_df = self.load_data('val')
         test_df = self.load_data('test')
+
 
         # Encode categorical features
         train_df = self.encode_categorical(train_df)
+        val_df = self.encode_categorical(val_df)
         test_df = self.encode_categorical(test_df)
 
         # Separate the features and target
         self.X_train = train_df[self.numerical_features + self.categorical_features]
         self.y_train = train_df[self.target_variable]
+        self.X_val = val_df[self.numerical_features + self.categorical_features]
+        self.y_val = val_df[self.target_variable]
+
         self.X_test = test_df[self.numerical_features + self.categorical_features]
         self.y_test = test_df[self.target_variable]
 

@@ -15,14 +15,13 @@ from network_ad.unsupervised.autoencoder_datamodule import AutoencoderDataModule
 
 
 class Autoencoder(pl.LightningModule):
-    def __init__(self, input_dim=704, hidden_dim=256, latent_dim=32, learning_rate=1e-3,
+    def __init__(self, input_dim=704, hidden_dim=256, hidden_dim2=128, latent_dim=32, learning_rate=1e-3,
                  dropout_rate=0.1,
                  max_training_steps = None
                  ):
         """
         :param input_dim: The input dimension (number of features) of the autoencoder
         :param hidden_dim1: The number of neurons in the first hidden layer
-        :param hidden_dim2: The number of neurons in the second hidden layer
         :param latent_dim: The latent dimension (number of neurons in the bottleneck layer)
         :param learning_rate: The learning rate for the optimizer
         :param max_training_steps: The maximum number of training steps(used for the scheduler)
@@ -37,12 +36,16 @@ class Autoencoder(pl.LightningModule):
             nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
-            nn.Linear(hidden_dim, latent_dim)
+            nn.Linear(hidden_dim, hidden_dim2),
+            nn.Linear(hidden_dim2, latent_dim),
         )
 
         # Decoder: 2 layers, latent_dim -> hidden_dim + activation -> input
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, hidden_dim),
+            nn.Linear(latent_dim, hidden_dim2),
+            nn.ReLU(),
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_dim2, hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_dim, input_dim),
@@ -179,11 +182,11 @@ if __name__ == "__main__":
     HIDDEN_DIM = 256
     LATENT_DIM = 8
     LEARNING_RATE = 1e-4
-    NUM_WORKERS = 2
-    N_EPOCHS= 2
+    NUM_WORKERS = 4
+    N_EPOCHS= 20
     DROPOUT_RATE = 0
 
-    VERSION  = "v2_latent_dim8"
+    VERSION  = "v3_latent_dim8_2_hidden"
 
     data_module = AutoencoderDataModule(batch_size=BATCH_SIZE,
                                         val_ratio=VAL_RATIO,
@@ -191,7 +194,7 @@ if __name__ == "__main__":
                                         )
     data_module.setup()
     try :
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda" if     torch.cuda.is_available() else "cpu")
     except :
         device = "cpu"
 

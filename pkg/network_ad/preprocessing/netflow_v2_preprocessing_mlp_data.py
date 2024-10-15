@@ -2,8 +2,7 @@ import shutil
 import sys
 sys.path.append("../..")
 
-
-from network_ad.config import AE_TEMPORARY_DATA_PATH, AE_PREPROCESSED_DATA_PATH
+from network_ad.config import MLP_TEMPORARY_DATA_PATH, MLP_PREPROCESSED_DATA_PATH
 from sklearn.preprocessing import OneHotEncoder
 from network_ad.config import NUMERICAL_STATS_PATH, CATEGORICAL_STATS_PATH, VAL_RATIO
 import json
@@ -14,13 +13,13 @@ import pandas as pd
 import h5py
 from tqdm import tqdm
 import joblib
-from network_ad.config import AE_CATEGORICAL_FEATURES, AE_NUMERICAL_FEATURES, PREPROCESSED_DATA_PATH, AUTOENCODER_INPUT_DIMS
+from network_ad.config import MLP_CATEGORICAL_FEATURES, MLP_NUMERICAL_FEATURES, PREPROCESSED_DATA_PATH, AUTOENCODER_INPUT_DIMS
 from network_ad.config import TRAIN_DATA_PATH, TEST_DATA_PATH, TEST_RATIO
 
 
-def ae_preprocess_data(mode, train_path, test_path, numerical_stats, categorical_encoders):
+def mlp_preprocess_data(mode, train_path, test_path, numerical_stats, categorical_encoders):
     """Process and save dataset to Hdf5."""
-    print("\nPreprocessing data for Autoencoder. Mode: ", mode)
+    print("\nPreprocessing data for MLP . Mode: ", mode)
     print("=====================================================")
     def load_data(mode):
         if mode == 'train':
@@ -30,7 +29,7 @@ def ae_preprocess_data(mode, train_path, test_path, numerical_stats, categorical
         else:
             raise ValueError(f"Invalid mode: {mode}")
 
-        for feature in AE_CATEGORICAL_FEATURES:
+        for feature in MLP_CATEGORICAL_FEATURES:
             df[feature] = df[feature].astype(str)
         return df
         # return df.sample(frac=0.01)
@@ -49,8 +48,8 @@ def ae_preprocess_data(mode, train_path, test_path, numerical_stats, categorical
         df = load_data('test')
         dataframe = df
 
-    temporary_h5_path = AE_TEMPORARY_DATA_PATH
-    temporary_h5_sub_paths = [PREPROCESSED_DATA_PATH / f'ae_temporary_data_chunk_{i}.h5' for i in range(multiprocessing.cpu_count())]
+    temporary_h5_path = MLP_TEMPORARY_DATA_PATH
+    temporary_h5_sub_paths = [PREPROCESSED_DATA_PATH / f'mlp_temporary_data_chunk_{i}.h5' for i in range(multiprocessing.cpu_count())]
     for temporary_h5_sub_path in temporary_h5_sub_paths:
         if temporary_h5_sub_path.exists():
             temporary_h5_sub_path.unlink()
@@ -61,11 +60,11 @@ def ae_preprocess_data(mode, train_path, test_path, numerical_stats, categorical
             dataframe_chunk.reset_index(drop=True, inplace=True)
             for idx, row in tqdm(dataframe_chunk.iterrows(), total=len(dataframe_chunk), desc=f'Preprocessing {mode} . Chunk start index: {start_idx}. Chunk size: {len(dataframe_chunk)}'):
                 categorical_data_list = []
-                for feature in AE_CATEGORICAL_FEATURES:
+                for feature in MLP_CATEGORICAL_FEATURES:
                     encoded_feature = categorical_encoders[feature].transform([[row[feature]]])
                     categorical_data_list.append(encoded_feature)
 
-                numerical_data = row[AE_NUMERICAL_FEATURES].values.astype(np.float32)
+                numerical_data = row[MLP_NUMERICAL_FEATURES].values.astype(np.float32)
                 numerical_scaled = (numerical_data - numerical_stats['mean'].values) / numerical_stats['std'].values
                 categorical_encoded = np.hstack(categorical_data_list).squeeze()
                 features = np.hstack((numerical_scaled, categorical_encoded)).astype(np.float32)
@@ -97,11 +96,11 @@ def ae_preprocess_data(mode, train_path, test_path, numerical_stats, categorical
 
 if __name__ == "__main__":
 
-    if AE_TEMPORARY_DATA_PATH.exists():
-        AE_TEMPORARY_DATA_PATH.unlink()
+    if MLP_TEMPORARY_DATA_PATH.exists():
+        MLP_TEMPORARY_DATA_PATH.unlink()
 
-    if AE_PREPROCESSED_DATA_PATH.exists():
-        AE_PREPROCESSED_DATA_PATH.unlink()
+    if MLP_PREPROCESSED_DATA_PATH.exists():
+        MLP_PREPROCESSED_DATA_PATH.unlink()
 
     numerical_stats = pd.read_csv(NUMERICAL_STATS_PATH, index_col=0)
     means = numerical_stats['mean'].values
@@ -112,7 +111,7 @@ if __name__ == "__main__":
     with open(CATEGORICAL_STATS_PATH, 'r') as f:
         categorical_stats = json.load(f)
     # Create one-hot encoders for each categorical feature
-    for feature in AE_CATEGORICAL_FEATURES:
+    for feature in MLP_CATEGORICAL_FEATURES:
         categorical_encoders[feature] = OneHotEncoder(categories=[categorical_stats[feature]],
                                                       sparse=False,
                                                            # sparse_output=False  #If error with sparse
@@ -122,10 +121,10 @@ if __name__ == "__main__":
 
 
 
-    ae_preprocess_data('train', TRAIN_DATA_PATH, TEST_DATA_PATH, numerical_stats, categorical_encoders)
-    ae_preprocess_data('val', TRAIN_DATA_PATH, TEST_DATA_PATH, numerical_stats, categorical_encoders)
-    ae_preprocess_data('test', TRAIN_DATA_PATH, TEST_DATA_PATH, numerical_stats, categorical_encoders)
+    mlp_preprocess_data('train', TRAIN_DATA_PATH, TEST_DATA_PATH, numerical_stats, categorical_encoders)
+    mlp_preprocess_data('val', TRAIN_DATA_PATH, TEST_DATA_PATH, numerical_stats, categorical_encoders)
+    mlp_preprocess_data('test', TRAIN_DATA_PATH, TEST_DATA_PATH, numerical_stats, categorical_encoders)
 
-    shutil.copy(AE_TEMPORARY_DATA_PATH, AE_PREPROCESSED_DATA_PATH)
+    shutil.copy(MLP_TEMPORARY_DATA_PATH, MLP_PREPROCESSED_DATA_PATH)
 
 

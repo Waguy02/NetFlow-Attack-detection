@@ -73,6 +73,25 @@ MULTICLASS_LABEL_COLUMN = "Attack"
 MULTIClASS_CLASS_NAMES= ['Benign', 'Fuzzers', 'Generic', 'Reconnaissance', 'Exploits', 'Analysis', 'Backdoor','DoS', 'Shellcode','Worms']
 BINARY_CLASS_NAMES = ['Benign', 'Malicious']
 
+MULTIClASS_CLASS_LABELS_TO_ID= {
+    'Benign': 0,
+    'Fuzzers': 1,
+    'Generic': 2,
+    'Reconnaissance': 3,
+    'Exploits': 4,
+    'Analysis': 5,
+    'Backdoor': 6,
+    'DoS': 7,
+    'Shellcode': 8,
+    'Worms': 9
+
+}
+
+BINARY_CLASS_LABELS_TO_ID = {
+    'Benign': 0,
+    'Malicious': 1
+}
+
 AE_NUMERICAL_FEATURES = [  # List of numerical features to compute stats for
     "MIN_TTL",
     "MAX_TTL",
@@ -105,6 +124,10 @@ AE_CATEGORICAL_FEATURES = [  # List of categorical features to compute stats for
     "FTP_COMMAND_RET_CODE",
 ]
 
+MLP_NUMERICAL_FEATURES = AE_NUMERICAL_FEATURES
+MLP_CATEGORICAL_FEATURES =AE_CATEGORICAL_FEATURES
+
+
 SEED = 42
 
 MAX_PLOT_POINTS = 1000000
@@ -113,5 +136,10 @@ AUTOENCODER_INPUT_DIMS = 704 #Not calculated but obtained from autoencoder datam
 
 AE_PREPROCESSED_DATA_PATH = PREPROCESSED_DATA_PATH / "ae_preprocessed_data.h5"
 AE_TEMPORARY_DATA_PATH = PREPROCESSED_DATA_PATH / "ae_temporary_data.h5"
+
+
+MLP_PREPROCESSED_DATA_PATH = PREPROCESSED_DATA_PATH / "mlp_preprocessed_data.h5"
+MLP_TEMPORARY_DATA_PATH = PREPROCESSED_DATA_PATH / "mlp_temporary_data.h5"
+
 
 LOGS_DIR  = HERE / ".." / ".." / "logs"

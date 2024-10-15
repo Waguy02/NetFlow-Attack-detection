@@ -1,5 +1,12 @@
 import sys
 sys.path.append("../..")
+
+
+import numpy as np
+
+from network_ad.config import SEED
+from random import random
+
 from typing import Tuple, Dict
 import pandas as pd
 import json
@@ -139,6 +146,9 @@ def save_data(train_data: pd.DataFrame,
 
 if __name__ == "__main__":
 
+    # To ensure reproducibility
+    random.seed(SEED)
+    np.random.seed(SEED)
 
     print("1. Loading Raw Data...")
     df  = load_raw_data()
