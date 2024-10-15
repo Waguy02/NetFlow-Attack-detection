@@ -118,11 +118,15 @@ Note : For each of the above parts, run first using binary labels and then multi
 ### Part 3: Linear Regression using scikit learn
 
 - In the notebook `eda_completed.ipynb` add a section Linear Regression 
-- Use scikit-learn to predict binary label ie 'Label' feature  (Not 'Attack')
+- Use scikit-learn to predict binary label ie 'Label' feature  (Not 'Attack') using **only** the following features :
+  - MIN_TTL
+  - TCP_WIN_MAX_IN
+  - MAX_IP_PKT_LEN
 - Compare the performance to the other methods.
 - What can you conclude?
 
 
+You have to provide a zip file containing all your experiments and the the related code.
 
 
 ## Due Date : 08/11/2024
