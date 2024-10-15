@@ -186,10 +186,12 @@ if __name__ == '__main__':
     LEARNING_RATE = 1e-3
     N_EPOCHS = 10
     DROPOUT_RATE = 0.1
-    VERSION = "mlp_classifier_v1"
+    LABEL_TYPE = "binary"
+    VERSION = f"mlp_classifier_{LABEL_TYPE}"
+
 
     # Initialize the DataModule
-    data_module = MLP_DataModule(batch_size=BATCH_SIZE, val_ratio=VAL_RATIO, label_type="multiclass")
+    data_module = MLP_DataModule(batch_size=BATCH_SIZE, val_ratio=VAL_RATIO, label_type=LABEL_TYPE)
     data_module.setup()
 
     # Get input and output dimensions based on dataset
@@ -199,7 +201,9 @@ if __name__ == '__main__':
     # Initialize the model
     model = MLPClassifier(input_dim=input_dim, hidden_dims=HIDDEN_DIMS,
                           max_training_steps=len(data_module.train_dataloader()) * N_EPOCHS,
-                          learning_rate=LEARNING_RATE, dropout=DROPOUT_RATE)
+                          learning_rate=LEARNING_RATE, dropout=DROPOUT_RATE,
+                          multiclass=LABEL_TYPE=="multiclass"
+                          )
 
     # Initialize TensorBoard logger
     logger = TensorBoardLogger("logs", name="mlp_classifier", version=VERSION)

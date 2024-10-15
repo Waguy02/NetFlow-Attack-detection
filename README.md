@@ -75,6 +75,33 @@ and set the value of the variable `CHECKPOINT_PATH`
 
 
  
+## Supervised Learning
+
+We will implement two learning algorithm to supervisely detect Attack.
+- LightGBM : A  perform gradient boosting algorithm
+- A MultiLayer Perceptron with 2 hidden layers :
+
+ 
+
+
+## Assignment 2
+- Train both lightgbm and mlp using multiclass labels.
+ 
+- Improving the MLP classifier performance
+  - Note : You should focus on `f1_score` rather than `accuracy`
+  
+- Hint:
+  - The file to update is `pkg/network_ad/supervised/mlp_attack_classifier` 
+  - You can add 1 or 2 hidden layers and increase the number of neurons of hidden layers
+
+- Make sure you are not overfitting.
+
+
+
+
+
+  
+
 
  
 

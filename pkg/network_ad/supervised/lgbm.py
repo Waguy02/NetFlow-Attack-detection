@@ -7,9 +7,9 @@ import lightgbm as lgb
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, classification_report
 from torch.utils.tensorboard import SummaryWriter
-
+from network_ad.supervised.utils import compute_confusion_matrix
 from network_ad.config import LOGS_DIR, TRAIN_DATA_PATH, TEST_DATA_PATH, MULTIClASS_CLASS_NAMES, BINARY_CLASS_NAMES
 from network_ad.supervised.lgbm_dataset import LightGBMDataset
 
@@ -78,11 +78,11 @@ class LightGBMClassifier:
             json.dump(training_results, f, indent=4)
 
         # Log confusion matrix to TensorBoard for training set
-        cm = confusion_matrix(y, train_preds, labels=self.class_labels)
+        cm = compute_confusion_matrix(y, train_preds, self.class_labels)
         self._log_confusion_matrix(cm, 'Training Confusion Matrix')
 
         # Cm normalized
-        cm_norm = confusion_matrix(y, train_preds, normalize='true', labels=self.class_labels)
+        cm_norm = compute_confusion_matrix(y, train_preds, self.class_labels, normalize=True)
         self._log_confusion_matrix(cm_norm, 'Normalized Training Confusion Matrix', normalize=True)
 
         # Validation set performance logging if provided
@@ -98,11 +98,11 @@ class LightGBMClassifier:
             print(f"Validation accuracy: {val_accuracy}, f1_weighted: {val_f1_weighted}, f1_macro: {val_f1_macro}, precision: {val_precision}, recall: {val_recall}")
 
             # Log validation confusion matrix to TensorBoard
-            val_cm = confusion_matrix(y_val, val_preds, labels=self.class_labels)
+            val_cm = compute_confusion_matrix(y_val, val_preds, self.class_labels)
             self._log_confusion_matrix(val_cm, 'Validation Confusion Matrix')
 
             # Cm normalized
-            val_cm_norm = confusion_matrix(y_val, val_preds, normalize='true', labels=self.class_labels)
+            val_cm_norm = compute_confusion_matrix(y_val, val_preds,  labels=self.class_labels, normalize=True)
             self._log_confusion_matrix(val_cm_norm, 'Normalized Validation Confusion Matrix', normalize=True)
 
             with open(self.log_dir / "val_metrics.json", 'w') as f:
@@ -145,11 +145,11 @@ class LightGBMClassifier:
         with open(self.log_dir / "test_metrics.json", 'w') as f:
             json.dump(test_results, f, indent=4)
         # Log confusion matrix to TensorBoard
-        cm = confusion_matrix(y_test, test_preds, labels=self.class_labels)
+        cm = compute_confusion_matrix(y_test, test_preds, self.class_labels)
         self._log_confusion_matrix(cm, 'Test Confusion Matrix')
 
         # Cm normalized
-        cm_norm = confusion_matrix(y_test, test_preds, normalize='true', labels=self.class_labels)
+        cm_norm = compute_confusion_matrix(y_test, test_preds, self.class_labels, normalize=True)
         self._log_confusion_matrix(cm_norm, 'Normalized Test Confusion Matrix', normalize=True)
 
         print(f"Test accuracy: {accuracy}, f1_weighted: {f1_weighted}, f1_macro: {f1_macro}, precision: {precision}, recall: {recall}")
@@ -162,22 +162,15 @@ class LightGBMClassifier:
         """Load a trained model."""
         self.model = lgb.Booster(model_file=path)
 
-    def _log_confusion_matrix(self, cm, tag, normalize=False):
+    def _log_confusion_matrix(self, fig, tag, normalize=False):
         """Log confusion matrix to TensorBoard."""
-        fig, ax = plt.subplots(figsize=(8, 6))
-        fmt = ".2f" if normalize else "d"
-        sns.heatmap(cm, annot=True, fmt=fmt, cmap="Blues", ax=ax)
-        ax.set_xlabel("Predicted")
-        ax.set_ylabel("True")
-        ax.set_title(tag)
-
         # Convert matplotlib plot to TensorBoard image format
         self.writer.add_figure(tag, fig)
         plt.close(fig)
 
 
 if __name__ == "__main__":
-    MULTICLASS = True
+    MULTICLASS = False
     NUM_LEAVES = 20
     NUM_ESTIMATORS = 100
     MAX_DEPTH = -1
