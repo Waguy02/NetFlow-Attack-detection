@@ -7,8 +7,6 @@ from sklearn.preprocessing import LabelEncoder
 from network_ad.config import AE_CATEGORICAL_FEATURES, AE_NUMERICAL_FEATURES, TRAIN_DATA_PATH, TEST_DATA_PATH, \
     BINARY_LABEL_COLUMN, MULTICLASS_LABEL_COLUMN,VAL_RATIO
 
-print(BINARY_LABEL_COLUMN)
-
 class LightGBMDataset:
     def __init__(self, train_path=TRAIN_DATA_PATH,
                  test_path=TEST_DATA_PATH,
@@ -48,7 +46,7 @@ class LightGBMDataset:
     def encode_categorical(self, df):
         """Encode the categorical features as integers using LabelEncoder."""
         for feature in self.categorical_features:
-            df[feature] = self.label_encoders[feature].fit_transform(df[feature])
+            df[feature] = self.label_encoders[feature].transform(df[feature])
         return df
 
     def setup(self):
@@ -58,6 +56,10 @@ class LightGBMDataset:
         val_df = self.load_data('val')
         test_df = self.load_data('test')
 
+        # Fit the label encoders
+        for feature in self.categorical_features:
+            all_values = pd.concat([train_df[feature], val_df[feature], test_df[feature]])
+            self.label_encoders[feature].fit(all_values)
 
         # Encode categorical features
         train_df = self.encode_categorical(train_df)
@@ -67,6 +69,7 @@ class LightGBMDataset:
         # Separate the features and target
         self.X_train = train_df[self.numerical_features + self.categorical_features]
         self.y_train = train_df[self.target_variable]
+
         self.X_val = val_df[self.numerical_features + self.categorical_features]
         self.y_val = val_df[self.target_variable]
 
