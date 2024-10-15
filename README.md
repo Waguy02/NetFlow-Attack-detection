@@ -70,13 +70,13 @@ and perform OneHotEncoding of the categorical features, Standardization of the n
 - Complete the notebook  `clustering_autoencoder_latent.ipynb` based on the content
 of the notebook `clustering_autoencoder_latent_completed':
   - Everything is done in 'clustering_autoencoder_latent_completed' notebook except
-    - The plotting of annotation over poitns in projection
-    - The part 6
+    - The plotting of annotation over poitns in projection.
+    - The part 6.
   
   - Additional question : 
     - Replace PCA with UMAP and compare the plots.
-- 
-- You should first completely run the script `autoencoder_lightning.py` to train the autoencoder
+
+- Ensure you run (again) the script `autoencoder_lightning.py` to train the autoencoder
 model. Once trained, copy the absolute path of the .ckpt file in logs/autoencoder/v2_latent_dim8
 and set the value of the variable `CHECKPOINT_PATH`
 - Follow the next instructions of the notebooks to complete it.
@@ -115,9 +115,17 @@ We will implement two learning algorithm to supervisely detect Attack.
 
 Note : For each of the above parts, run first using binary labels and then multiclass labels
 
+### Part 3: Linear Regression using scikit learn
+
+- In the notebook `eda_completed.ipynb` add a section Linear Regression 
+- Use scikit-learn to predict binary label ie 'Label' feature  (Not 'Attack')
+- Compare the performance to the other methods.
+- What can you conclude?
 
 
-## Due Date : 01/11/2024
+
+
+## Due Date : 08/11/2024
 
 
 
