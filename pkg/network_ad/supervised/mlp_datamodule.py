@@ -232,14 +232,8 @@ class MLP_DataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         #Balance the classes
-        if self.label_type == "binary":
-            weights = [self.train_data.binary_class_weights[label] for label in self.train_data.binary_labels]
-        else :
-            weights = [self.train_data.multiclass_weights[label] for label in self.train_data.multiclass_labels]
-        sampler = WeightedRandomSampler(weights=weights, num_samples=len(weights), replacement=True)
-
         return DataLoader(self.train_data, batch_size=self.batch_size,  num_workers=self.num_workers,
-                          sampler=sampler,
+                          shuffle=True,
                           persistent_workers=self.num_workers > 0)
 
     def val_dataloader(self):

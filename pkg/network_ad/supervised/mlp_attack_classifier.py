@@ -187,7 +187,7 @@ if __name__ == '__main__':
     N_EPOCHS = 2
     DROPOUT_RATE = 0.1
     LABEL_TYPE = "multiclass"
-    VERSION = f"mlp_classifier_{LABEL_TYPE}"
+    VERSION = f"mlp_classifier_unbalanced_{LABEL_TYPE}"
 
 
     # Initialize the DataModule
