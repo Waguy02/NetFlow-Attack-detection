@@ -170,7 +170,7 @@ class LightGBMClassifier:
 
 
 if __name__ == "__main__":
-    MULTICLASS = False
+    MULTICLASS = True
     NUM_LEAVES = 20
     NUM_ESTIMATORS = 100
     MAX_DEPTH = -1
