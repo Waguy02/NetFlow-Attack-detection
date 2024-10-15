@@ -186,7 +186,7 @@ if __name__ == '__main__':
     LEARNING_RATE = 1e-3
     N_EPOCHS = 2
     DROPOUT_RATE = 0.1
-    LABEL_TYPE = "multiclass"
+    LABEL_TYPE = "binary"
     VERSION = f"mlp_classifier_{LABEL_TYPE}"
 
 
