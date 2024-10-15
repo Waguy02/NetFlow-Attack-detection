@@ -1,1 +1,7 @@
 data
+/logs/
+#Ignore ipynb
+*.ipynb
+.ipynb_checkpoints
+/.idea
+/pkg/network_ad.egg-info
