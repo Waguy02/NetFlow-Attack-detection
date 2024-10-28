@@ -132,10 +132,41 @@ You have to provide a zip file containing all your experiments and the the relat
 ## Due Date : 08/11/2024
 
 
+## More details on the Assignement 2  (Updated on 28/10/2024)
+
+At the request of some students, here are more details on assignment 2.
+
+### 1. For the MLP Classifier :
+ 
+ - We already trained a mlp_classifier during the course but with a small number of neurons in the hidden layers, and only one 2 hidden layers.
+ - The goal is to improve the performance of the model by editing the file the file `pkg/network_ad/supervised/mlp_classifier.py` 
+       - Increase the number of neurons in the hidden layers
+       - Add one or two hidden layers
+       - Increase the number of training epochs.
+ - For each run, take care to change the name of the version of each you train. To set the version name, just modify the variable `VERSION` in the `__main__`  of the script `pkg/network_ad/supervised/mlp_classifier.py`
 
   
+ - During(and after) training, you can use the tensorboard to visualize the training and validation loss and accuracy.
+   - To do this, you must run the following command in the terminal:
+     ```
+     tensorboard --logdir=logs/mlp_classifier/VERSION
+     ```
+   - Then open your browser and go to the following address: http://localhost:6006/
+   ![img_1.png](img_1.png)
+  
+ - You should try to achieved the best `f1_score_macro` on the validation set.
 
 
+### 2. For the LightGBM Classifier :
+
+- First, create a file `estimate_hyperparameters.py`, where you’ll use the Optuna library to estimate optimal hyperparameters for LightGBM. Optuna performs exploration of the hyperparameter space to find optimal values.
+
+- After obtaining optimal parameters, use these settings in lgbm.py and rerun the training.
+
+
+### Content of the zip file to submit
+  
+- All files of the project excluding `/data` directory
  
 
 
